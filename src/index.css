@@ -1,0 +1,25 @@
+@import "tailwindcss";
+
+:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+}
+
+@layer components {
+  .primary-button {
+    @apply bg-[#14589C] font-medium text-white text-lg cursor-pointer px-6 py-2 rounded-[16px] relative overflow-hidden z-[1];
+    
+    &::after {
+      @apply content-[''] absolute bottom-0 left-0 w-full h-full bg-[#14589C] rounded-[16px] z-[-2];
+    }
+    
+    &::before {
+      @apply content-[''] absolute bottom-0 left-0 w-0 h-full bg-[#0d4a8a] transition-all duration-300 rounded-[16px] z-[-1];
+    }
+    
+    &:hover::before {
+      @apply w-full;
+    }
+  }
+}

@@ -1,0 +1,238 @@
+import React from "react";
+import LoginImg from "../../../assets/imgs/auth/sign-img.png";
+import MicrosoftImg from "../../../assets/imgs/auth/microsoft.png";
+import GoogleImg from "../../../assets/imgs/auth/google.png";
+import { Link } from "react-router-dom";
+import { useState } from "react";
+import { fetchApi } from "../../../utils/axios";
+import { toast } from "sonner";
+import { RxEyeOpen, RxEyeClosed } from "react-icons/rx";
+import { login, resetPasswordEmail } from "../../../services/auth";
+
+const LoginPage = () => {
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+  const [isAgree, setIsAgree] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [forgotPasswordEmail, setForgotPasswordEmail] = useState("");
+  const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
+  const [error, setError] = useState(null);
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await login(formData);
+      toast.success(response.message);
+      // Handle successful login (e.g., store token, redirect, etc.)
+    } catch (err) {
+      setError(err.message || "Login failed");
+      toast.error(err.message || "Login failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await resetPasswordEmail(forgotPasswordEmail);
+      toast.success(response.message);
+      setShowForgotPasswordModal(false);
+      setForgotPasswordEmail("");
+    } catch (err) {
+      setError(err.message || "Failed to send reset link");
+      toast.error(err.message || "Failed to send reset link");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="container mx-auto my-16 px-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="hidden md:flex justify-center items-center">
+          <img
+            src={LoginImg}
+            className="max-w-[500px] w-full"
+            alt="Login illustration"
+          />
+        </div>
+        <div className="max-w-md mx-auto w-full bg-white rounded-[16px] py-8 px-8 shadow-2xl">
+          <div className="flex flex-col space-y-8 w-full">
+            <div className="text-3xl font-medium text-center mb-4 text-[#14589C]">
+              e talent
+            </div>
+
+            <div className="space-y-2">
+              <h1 className="text-3xl font-semibold">Sign in</h1>
+              <p className="text-gray-600 text-sm">
+                Welcome Back to Talent Hub!
+              </p>
+            </div>
+
+            <form className="space-y-6">
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    placeholder="Email"
+                    value={formData?.email}
+                    onChange={(e) =>
+                      setFormData({ ...formData, email: e.target.value })
+                    }
+                    className="w-full px-4 py-3 border border-[#D8D8D8] rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Password
+                  </label>
+                  <div className="w-full px-4 py-3 border border-[#D8D8D8] rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 flex items-center justify-between gap-4">
+                    <input
+                      type={isPasswordVisible ? "text" : "password"}
+                      placeholder="Password"
+                      value={formData?.password}
+                      onChange={(e) =>
+                        setFormData({ ...formData, password: e.target.value })
+                      }
+                      className="border-none outline-none bg-transparent flex-1"
+                    />
+                    <div
+                      className="outline-none cursor-pointer text-gray-600"
+                      onClick={() => setIsPasswordVisible(!isPasswordVisible)}
+                    >
+                      {isPasswordVisible ? <RxEyeOpen /> : <RxEyeClosed />}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center">
+                  <input
+                    id="terms"
+                    type="checkbox"
+                    className="h-4 w-4 text-[#14589C] focus:ring-blue-500 border-gray-300 rounded"
+                    checked={isAgree}
+                    onChange={() => setIsAgree(!isAgree)}
+                    required
+                  />
+                  <label
+                    htmlFor="terms"
+                    className="ml-2 block text-sm text-gray-700"
+                  >
+                    I agree to the{" "}
+                    <a href="#" className="text-blue-600 hover:underline">
+                      Terms of Service
+                    </a>{" "}
+                    and{" "}
+                    <a href="#" className="text-blue-600 hover:underline">
+                      Privacy Policy
+                    </a>
+                  </label>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowForgotPasswordModal(true)}
+                  className="text-sm font-medium text-[#14589C] hover:underline whitespace-nowrap"
+                >
+                  Forgot Password?
+                </button>
+              </div>
+
+              <button
+                onClick={handleLogin}
+                className="primary-button w-full py-3"
+                disabled={loading}
+              >
+                {loading ? "Logging in..." : "Login"}
+              </button>
+            </form>
+
+            <div className="relative flex items-center py-4">
+              <div className="flex-grow border-t border-gray-300"></div>
+              <span className="flex-shrink mx-4 text-gray-600">Or</span>
+              <div className="flex-grow border-t border-gray-300"></div>
+            </div>
+
+            <div className="flex gap-3 w-full flex-col">
+              <button className="bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 px-4 rounded-lg flex items-center justify-center gap-3 font-medium">
+                <img src={MicrosoftImg} width={25} alt="Microsoft logo" />
+                Sign in with Microsoft
+              </button>
+
+              <button className="bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 px-4 rounded-lg flex items-center justify-center gap-3 font-medium">
+                <img src={GoogleImg} width={25} alt="Google logo" />
+                Sign in with Google
+              </button>
+            </div>
+
+            <p className="text-center text-sm">
+              Don't have an account?{" "}
+              <Link to={"/auth/register"} className="text-blue-600 hover:underline">
+                Create Now
+              </Link>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Forgot Password Modal */}
+      {showForgotPasswordModal && (
+        <div className="fixed inset-0 bg-[#00000061] bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <h2 className="text-2xl font-semibold mb-4">Reset Password</h2>
+            <p className="text-gray-600 mb-4">
+              Enter your email address and we'll send you a link to reset your password.
+            </p>
+            <form onSubmit={handleForgotPassword}>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  placeholder="Enter your email"
+                  value={forgotPasswordEmail}
+                  onChange={(e) => setForgotPasswordEmail(e.target.value)}
+                  className="w-full px-3 py-2 border border-[#D8D8D8] rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                  required
+                />
+              </div>
+              <div className="flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowForgotPasswordModal(false)}
+                  className="px-4 py-2 text-gray-600 hover:text-gray-800"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="primary-button px-4 py-2"
+                  disabled={loading}
+                >
+                  {loading ? "Sending..." : "Send Reset Link"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default LoginPage;
