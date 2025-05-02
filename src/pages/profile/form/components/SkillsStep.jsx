@@ -1,55 +1,76 @@
-import TechnicalSkillsPopup from './TechnicalSkillsPopup'
-import SoftSkillsPopup from './SoftSkillsPopup'
+import React, { useState } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { removeSpeciality } from '../../../../Redux/user-slice';
+import { FaPlus, FaTimes } from 'react-icons/fa';
+import SkillModal from './SkillModal';
 
 const SkillsStep = () => {
-    return (
-        <>
-            <div className='flex justify-between items-center mb-2 p-2'>
-                <h2 className='text-2xl font-bold'>
-                    Technical Skills
-                </h2>
+  const dispatch = useDispatch();
+  const { specialities } = useSelector(state => state.user);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-                <TechnicalSkillsPopup />
-            </div>
+  const handleRemoveSkill = (id) => {
+    dispatch(removeSpeciality(id));
+  };
 
-            <hr className="border-gray-200" />
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-semibold text-gray-800">Skills</h2>
+        <button
+          onClick={() => setIsModalOpen(true)}
+          className="flex items-center gap-2 px-3 py-2 cursor-pointer outline-none font-medium"
+        >
+          <FaPlus size={14} />
+          <span>Add Skill</span>
+        </button>
+      </div>
 
-            <div className='flex justify-between items-center my-2 p-2'>
-                <h2 className='text-2xl font-bold'>
-                    Soft Skills
-                </h2>
+      <div className="p-4 bg-white rounded-lg border border-gray-200">
+        <h3 className="text-lg font-medium text-gray-800 mb-3">Your Skills</h3>
+        
+        {specialities && specialities.length > 0 ? (
+          <div className="flex flex-wrap gap-2">
+            {specialities.map((skill, index) => (
+              <div 
+                key={index} 
+                className="bg-primary bg-opacity-10 px-3 py-1.5 rounded-full flex items-center gap-2"
+              >
+                <span className="text-primary font-medium">{skill.name}</span>
+                <button
+                  onClick={() => handleRemoveSkill(skill.id || index)}
+                  className="text-primary hover:text-red-500 transition-colors"
+                >
+                  <FaTimes size={12} />
+                </button>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-6 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+            <p className="text-gray-500">No skills added yet. Click "Add Skill" to begin.</p>
+          </div>
+        )}
+      </div>
 
-                <SoftSkillsPopup />
-            </div>
+      <div className="mt-6">
+        <h3 className="text-lg font-medium text-gray-800 mb-3">Skill Tips</h3>
+        <div className="bg-blue-50 text-blue-800 p-4 rounded-lg">
+          <ul className="list-disc list-inside space-y-2">
+            <li>Add skills that showcase your strengths and experiences</li>
+            <li>Include both technical skills and soft skills</li>
+            <li>Be specific about technologies and tools you're proficient in</li>
+            <li>Prioritize skills that are relevant to your target roles</li>
+          </ul>
+        </div>
+      </div>
 
-            <hr className="border-gray-200" />
+      <SkillModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
+    </div>
+  );
+};
 
-            <div className='px-6 pt-2'>
-                <div className='space-y-2'>
-                    <div className='flex justify-between'>
-                        <h3 className='text-xl font-semibold'>
-                            Javascript
-                        </h3>
-
-                        <div className='flex space-x-2'>
-                            <button className="p-2 text-gray-600 hover:text-blue-500">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                </svg>
-                            </button>
-                            <button className="p-2 text-gray-600 hover:text-red-500">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-
-                    <hr className="my-4 border-gray-200" />
-                </div>
-            </div>
-        </>
-    )
-}
-
-export default SkillsStep 
+export default SkillsStep; 

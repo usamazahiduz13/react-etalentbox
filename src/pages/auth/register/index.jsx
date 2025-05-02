@@ -1,11 +1,11 @@
 import React, {useState} from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import RegisterImg from '../../../assets/imgs/auth/register.png';
-import { fetchApi } from '../../../utils/axios';
 import GoogleIcon from '../../../assets/imgs/auth/google.png';
 import MicrosoftIcon from '../../../assets/imgs/auth/microsoft.png';
 import { register } from '../../../services/auth';
 import { toast } from 'sonner';
+import logo from '../../../assets/logo.svg'
 
 const RegisterPage = () => {
   const [formData, setFormData] = useState({
@@ -50,7 +50,10 @@ const RegisterPage = () => {
 
       <div className="w-full md:w-1/2 p-8 flex flex-col justify-center">
         <div className="max-w-md mx-auto w-full bg-white rounded-[16px] py-6 px-8 shadow-2xl" >
-          <div className='text-3xl font-medium text-center mb-2 text-[#14589C]'>e talent</div>
+          <div className='text-3xl font-medium text-center mb-2 text-[#14589C] flex items-center justify-center gap-2'>
+            <img src={logo} alt="eTalentBox Logo" className="h-8 md:h-10" />
+            <span className="text-2xl font-bold">e talent</span>
+          </div>
           <div className="text-2xl font-bold mb-2 ext-center">Create Account</div>
 
           {error && (
@@ -120,15 +123,13 @@ const RegisterPage = () => {
             </button>
           </form>
           <p className='text-center text-sm text-gray-600 mt-4'>or sign up with</p>
-          <div className='mt-2 flex gap-2 flex-col justify-center items-center w-full'>
-          <button className="bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 px-4 rounded flex items-center justify-center gap-2 font-medium w-full">
+          <div className='mt-2 flex gap-2 justify-center items-center w-full'>
+          <button className="bg-gray-100 hover:bg-gray-200 p-2 rounded-full">
               <img src={MicrosoftIcon} width={25} alt="Microsoft logo" />
-              Sign in with Microsoft
             </button>
 
-            <button className="bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 px-4 rounded flex items-center justify-center gap-2 font-medium w-full" >
+            <button className="bg-gray-100 hover:bg-gray-200 p-2 rounded-full">
               <img src={GoogleIcon} width={25} alt="Google logo" />
-              Sign in with Google
             </button>
           </div>
 

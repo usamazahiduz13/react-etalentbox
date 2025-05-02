@@ -1,35 +1,37 @@
-import { useTranslation } from 'react-i18next';
-import FormikDatePicker from '@/components/form/FormikDatepicker';
-import FormikField from '@/components/form/FormikField';
-import FormikRadio from '@/components/form/FormikRadio';
-import FormikAutoCompleteSelect from '@/components/form/FormikSelect';
-import AvatarImg from '@/assets/imgs/avatar-1.jpg';
-import { useState } from 'react';
-import { countriesOptions } from '@/utilis/helpers';
-import DropzoneFileUploader from './DropzoneFileUploader';
-import mammoth from 'mammoth';
-import * as pdfjs from 'pdfjs-dist';
-import { useFormikContext } from 'formik';
+import AvatarImg from "../../../../assets/imgs/avatar-1.jpg";
+import { useState } from "react";
+import { countries } from "../../utilis/helpers";
+import DropzoneFileUploader from "./DropzoneFileUploader";
+import mammoth from "mammoth";
+import * as pdfjsLib from "pdfjs-dist";
+import { FaRegEdit } from "react-icons/fa";
+import { FaChevronDown } from "react-icons/fa";
 
-// Initialize PDF.js worker
-pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
+// Initialize PDF.js worker for Vite
+pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
+  "pdfjs-dist/build/pdf.worker.min.js",
+  import.meta.url
+).href;
 
-const CompanyInfoStep = () => {
-  const { t } = useTranslation(); // Hook for translations
-  const { setFieldValue } = useFormikContext();
-  const [profileLevelDesp, setProfileLevelDesp] = useState('{Description}');
+const CompanyInfoStep = ({ formData, onInputChange }) => {
+  const [profileLevelDesp, setProfileLevelDesp] = useState("{Description}");
+  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
 
+  console.log(formData);
   const handleFileUpload = async (file) => {
-    console.log('File upload started:', file.name, file.type);
-  
-    if (file.type === 'application/pdf') {
-      console.log('Processing PDF file');
+    console.log("File upload started:", file.name, file.type);
+
+    if (file.type === "application/pdf") {
+      console.log("Processing PDF file");
       await extractTextFromPDF(file);
-    } else if (file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
-      console.log('Processing DOCX file');
+    } else if (
+      file.type ===
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    ) {
+      console.log("Processing DOCX file");
       await extractTextFromDocx(file);
     } else {
-      console.log('Unsupported file type:', file.type);
+      console.log("Unsupported file type:", file.type);
     }
   };
 
@@ -38,22 +40,26 @@ const CompanyInfoStep = () => {
     reader.onload = async () => {
       try {
         const typedarray = new Uint8Array(reader.result);
-        const pdf = await pdfjs.getDocument({ data: typedarray }).promise;
-        let extractedText = '';
-    
+        const pdf = await pdfjsLib.getDocument({ data: typedarray }).promise;
+        let extractedText = "";
+
         for (let i = 1; i <= pdf.numPages; i++) {
           const page = await pdf.getPage(i);
           const textContent = await page.getTextContent();
-          extractedText += textContent.items.map((item) => 'str' in item ? item.str : '').join(' ') + '\n';
+          extractedText +=
+            textContent.items
+              .map((item) => ("str" in item ? item.str : ""))
+              .join(" ") + "\n";
         }
-    
-        console.log('Extracted PDF text:', extractedText);
-        parseCVText(extractedText, setFieldValue);
+
+        parseCVText(extractedText);
       } catch (error) {
-        console.error('Error processing PDF:', error);
+        console.error("Error processing PDF:", error);
+      } finally {
+        setIsParsing(false);
       }
     };
-  
+
     reader.readAsArrayBuffer(file);
   };
 
@@ -61,157 +67,369 @@ const CompanyInfoStep = () => {
     const reader = new FileReader();
     reader.onload = async () => {
       try {
-        const result = await mammoth.extractRawText({ arrayBuffer: reader.result });
-        console.log('Extracted DOCX text:', result.value);
-        parseCVText(result.value, setFieldValue);
+        const result = await mammoth.extractRawText({
+          arrayBuffer: reader.result,
+        });
+        console.log("Extracted DOCX text:", result.value);
+        parseCVText(result.value);
       } catch (error) {
-        console.error('Error processing DOCX:', error);
+        console.error("Error processing DOCX:", error);
       }
     };
-  
+
     reader.readAsArrayBuffer(file);
   };
 
-  const parseCVText = (text, setFieldValue) => {  
-    console.log('Starting CV text parsing');
-    
+  const parseCVText = (text) => {
+    console.log("Starting CV text parsing");
+
     // Name extraction with multiple patterns
-    let nameMatch = text.match(/(?:First Name|Full Name|Given Name)\s*([\w\s]+)/i);
+    let nameMatch = text.match(
+      /(?:First Name|Full Name|Given Name)[:\s]*([^\n\r]+)/i
+    );
     if (!nameMatch) {
-        nameMatch = text.match(/^([A-Za-z]+(?:\s[A-Za-z]+){1,2})/m);
+      nameMatch = text.match(/^([A-Za-z]+(?:\s[A-Za-z]+){1,2})/m);
     }
     if (!nameMatch) {
-        nameMatch = text.match(/Name:\s*([\w\s]+)/i);
+      nameMatch = text.match(/Name[:\s]*([^\n\r]+)/i);
     }
 
     // Date of birth extraction
-    const dobMatch = text.match(/(?:Date of Birth|DOB|Birth Date):\s*(\d{1,2}[-\/]\d{1,2}[-\/]\d{2,4})/i);
-    
-    // Passport extraction
-    const passportMatch = text.match(/(?:Passport|Passport Number):\s*([\w\d]+)/i);
-    
-    // Nationality extraction
-    const nationalityMatch = text.match(/(?:Nationality|Country of Origin):\s*([^\n]+)/i);
-    
-    // Work Country extraction
-    const workCountryMatch = text.match(/(?:Country|Work Country|Current Country):\s*([\w\s]+)/i);
-    
-    // Language extraction
-    const languageMatch = text.match(/(?:Languages|Language):\s*([^\n]+)/i);
-    
-    // ID Number extraction
-    const idNumberMatch = text.match(/(?:ID Number|ID|National ID):\s*([\w\d]+)/i);
+    const dobMatch = text.match(
+      /(?:Date of Birth|DOB|Birth Date)[:\s]*(\d{1,2}[-\/]\d{1,2}[-\/]\d{2,4})/i
+    );
 
-    console.log('Parsed matches:', {
-      nameMatch: nameMatch?.[1],
-      dobMatch: dobMatch?.[1],
-      passportMatch: passportMatch?.[1],
-      nationalityMatch: nationalityMatch?.[1],
-      workCountryMatch: workCountryMatch?.[1],
-      languageMatch: languageMatch?.[1],
-      idNumberMatch: idNumberMatch?.[1]
-    });
+    // Passport extraction
+    const passportMatch = text.match(
+      /(?:Passport|Passport Number)[:\s]*([^\n\r]+)/i
+    );
+
+    // Nationality extraction
+    const nationalityMatch = text.match(
+      /(?:Nationality|Country of Origin)[:\s]*([^\n\r]+)/i
+    );
+
+    // Work Country extraction
+    const workCountryMatch = text.match(
+      /(?:Country|Work Country|Current Country)[:\s]*([^\n\r]+)/i
+    );
+
+    // Language extraction
+    const languageMatch = text.match(/(?:Languages|Language)[:\s]*([^\n\r]+)/i);
+
+    // ID Number extraction
+    const idNumberMatch = text.match(
+      /(?:ID Number|ID|National ID)[:\s]*([^\n\r]+)/i
+    );
 
     // Set form values if matches found
     if (nameMatch) {
-      const [firstName, ...lastName] = nameMatch[1].trim().split(' ');
-      console.log('Setting name fields:', { firstName, lastName: lastName.join(' ') });
-      setFieldValue('firstName', firstName || '');
-      setFieldValue('lastName', lastName.join(' ') || '');
+      const [firstName, ...lastName] = nameMatch[1].trim().split(/\s+/);
+      onInputChange({ target: { name: "firstName", value: firstName || "" } });
+      onInputChange({
+        target: { name: "lastName", value: lastName.join(" ") || "" },
+      });
     }
 
     if (dobMatch) {
-      console.log('Setting date of birth:', dobMatch[1]);
-      setFieldValue('dateOfBirth', dobMatch[1]);
+      onInputChange({ target: { name: "dateOfBirth", value: dobMatch[1] } });
     }
 
     if (passportMatch) {
-      console.log('Setting passport number:', passportMatch[1]);
-      setFieldValue('passportNumber', passportMatch[1]);
+      onInputChange({
+        target: { name: "passportNumber", value: passportMatch[1].trim() },
+      });
     }
 
     if (nationalityMatch) {
-      const nationalityValue = nationalityMatch[1]?.trim();
-      const matchedNationality = countriesOptions.find(
-        (country) => country.label.trim().toLowerCase() === nationalityValue.toLowerCase()
+      const nationalityValue = nationalityMatch[1].trim();
+      const matchedNationality = countries.find(
+        (country) =>
+          country.label.trim().toLowerCase() === nationalityValue.toLowerCase()
       );
-      console.log('Setting nationality:', { nationalityValue, matchedNationality });
-      setFieldValue('nationality', matchedNationality || { label: nationalityValue, value: '' });
+      onInputChange({
+        target: {
+          name: "nationality",
+          value: matchedNationality || null,
+        },
+      });
     }
 
     if (workCountryMatch) {
       const workCountryValue = workCountryMatch[1].trim();
-      const matchedWorkCountry = countriesOptions.find(
-        (country) => country.label.toLowerCase() === workCountryValue.toLowerCase()
+      const matchedWorkCountry = countries.find(
+        (country) =>
+          country.label.toLowerCase() === workCountryValue.toLowerCase()
       );
-      console.log('Setting work country:', { workCountryValue, matchedWorkCountry });
-      setFieldValue('workCountry', matchedWorkCountry || null);
+      onInputChange({
+        target: {
+          name: "workCountry",
+          value: matchedWorkCountry || null,
+        },
+      });
     }
 
     if (languageMatch) {
-      console.log('Setting language:', languageMatch[1].trim());
-      setFieldValue('language', languageMatch[1].trim());
+      onInputChange({
+        target: { name: "language", value: languageMatch[1].trim() },
+      });
     }
 
     if (idNumberMatch) {
-      console.log('Setting ID number:', idNumberMatch[1]);
-      setFieldValue('idNumber', idNumberMatch[1]);
+      onInputChange({
+        target: { name: "idNumber", value: idNumberMatch[1].trim() },
+      });
     }
   };
 
   return (
-    <>
-      <h2 className="text-2xl font-bold">{t('company_info')}</h2>
-      <div className="flex gap-4 my-6">
-        <img 
-          src={AvatarImg} 
-          alt="Avatar" 
-          className="w-24 h-24 rounded-full object-cover"
-        />
-
-        <div className="space-y-4">
-          <p className="text-base">{t('profile_level')}*</p>
-
-          <FormikRadio
-            name="profileLevel"
-            options={[
-              { value: 'Student', label: t('student'), selectedValue: 'Student profile is for students' },
-              { value: 'Professional', label: t('skilled'), selectedValue: 'Professional profile is related to professional life' },
-              { value: 'Non Professional', label: t('non_skilled'), selectedValue: 'Non Professional profile is like laborers, electricians, etc.' },
-            ]}
-            onChange={(_, __, value) => {
-              console.log('value?.selectedValue ==> ', value?.selectedValue)
-              setProfileLevelDesp(value?.selectedValue)
-            }}
+    <div className="md:px-8 px-4 py-6">
+      <div className="flex justify-center mb-8">
+        <div className="relative">
+          <img
+            src={AvatarImg}
+            alt="Avatar"
+            className="w-24 h-24 rounded-full object-cover"
           />
+          <span className="absolute bottom-0 right-0 bg-white rounded-full p-1.5 shadow-sm">
+            <FaRegEdit className="w-5 h-5 text-gray-600" />
+          </span>
         </div>
       </div>
 
-      <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mt-2 mb-4 text-blue-700">
-        {profileLevelDesp}
+      <div className="bg-blue-50 p-4 mb-6 text-blue-700 rounded-lg">
+        Please fill all fields to continue
       </div>
 
-      <div className="flex flex-col md:flex-row gap-4 my-4">
-        <DropzoneFileUploader label="Upload your Resume" onFileUpload={handleFileUpload} />
-        <DropzoneFileUploader label="Upload your LinkedIn Profile" onFileUpload={handleFileUpload} />
+      <div className="flex flex-col md:flex-row gap-6 mb-8">
+        <DropzoneFileUploader
+          label="Upload your Resume"
+          onFileUpload={handleFileUpload}
+        />
+        <DropzoneFileUploader
+          label="Upload your LinkedIn Profile"
+          onFileUpload={handleFileUpload}
+        />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-4">
-          <FormikField name="firstName" label={t('first_name')} isRequired />
-          <FormikDatePicker name="dateOfBirth" label={t('dob')} isRequired />
-          <FormikField name="language" label={t('language')} isRequired />
-          <FormikField name="passportNumber" label={t('passport')} isRequired />
+      <div className="space-y-6">
+        <div className="relative">
+          <p className="text-sm font-medium text-gray-700 mb-2">
+            Profile Level <span className="text-red-500 text-lg">*</span>
+          </p>
+          <div
+            className="border px-4 py-3 border-[#D8D8D8] rounded-lg flex items-center justify-between w-full cursor-pointer hover:border-blue-500 transition-colors"
+            onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
+          >
+            <span className="text-gray-700">{formData.profileLevel || "Select Profile Level"}</span>
+            <FaChevronDown className="w-5 h-5 text-gray-500" />
+          </div>
+
+          {isProfileDropdownOpen && (
+            <div className="bg-white shadow-lg rounded-lg p-2 absolute top-full left-0 w-full z-10 mt-1 border border-gray-200">
+              {[
+                {
+                  value: "Student",
+                  label: "Student",
+                  selectedValue: "Student profile is for students",
+                },
+                {
+                  value: "Professional",
+                  label: "Professional",
+                  selectedValue: "Professional profile is related to professional life",
+                },
+                {
+                  value: "Non Professional",
+                  label: "Non Professional",
+                  selectedValue: "Non Professional profile is like laborers, electricians, etc.",
+                },
+              ].map((option) => (
+                <div
+                  key={option.value}
+                  className="flex items-center p-3 hover:bg-gray-100 rounded cursor-pointer"
+                >
+                  <input
+                    type="radio"
+                    id={option.value}
+                    name="profileLevel"
+                    value={option.value}
+                    checked={formData.profileLevel === option.value}
+                    onChange={(e) => {
+                      onInputChange(e);
+                      setProfileLevelDesp(option.selectedValue);
+                      setIsProfileDropdownOpen(false);
+                    }}
+                    className="mr-3"
+                  />
+                  <label htmlFor={option.value} className="cursor-pointer">
+                    {option.label}
+                  </label>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
-        <div className="space-y-4">
-          <FormikField name="lastName" label={t('last_name')} isRequired />
-          <FormikAutoCompleteSelect name="nationality" label={t('nationality')} options={countriesOptions} isRequired />
-          <FormikAutoCompleteSelect name="workCountry" label={t('work_country')} options={countriesOptions} isRequired />
-          <FormikField name="idNumber" label={t('id_number')} isRequired />
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-6">
+            <div>
+              <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-2">
+                First Name <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                id="firstName"
+                name="firstName"
+                value={formData.firstName || ""}
+                onChange={onInputChange}
+                className="mt-1 block w-full rounded-lg py-2.5 px-4 border border-[#D8D8D8] shadow-sm focus:border-blue-500 outline-blue-500"
+                required
+              />
+            </div>
+
+            <div>
+              <label htmlFor="dateOfBirth" className="block text-sm font-medium text-gray-700 mb-2">
+                Date of Birth <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="date"
+                id="dateOfBirth"
+                name="dateOfBirth"
+                value={formData.dateOfBirth || ""}
+                onChange={onInputChange}
+                className="mt-1 block w-full rounded-lg py-2.5 px-4 border border-[#D8D8D8] shadow-sm focus:border-blue-500 outline-blue-500"
+                required
+              />
+            </div>
+
+            <div>
+              <label htmlFor="language" className="block text-sm font-medium text-gray-700 mb-2">
+                Language <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                id="language"
+                name="language"
+                value={formData.language || ""}
+                onChange={onInputChange}
+                className="mt-1 block w-full rounded-lg py-2.5 px-4 border border-[#D8D8D8] shadow-sm focus:border-blue-500 outline-blue-500"
+                required
+              />
+            </div>
+
+            <div>
+              <label htmlFor="passportNumber" className="block text-sm font-medium text-gray-700 mb-2">
+                Passport Number <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                id="passportNumber"
+                name="passportNumber"
+                value={formData.passportNumber || ""}
+                onChange={onInputChange}
+                className="mt-1 block w-full rounded-lg py-2.5 px-4 border border-[#D8D8D8] shadow-sm focus:border-blue-500 outline-blue-500"
+                required
+              />
+            </div>
+          </div>
+
+          <div className="space-y-6">
+            <div>
+              <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-2">
+                Last Name <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                id="lastName"
+                name="lastName"
+                value={formData.lastName || ""}
+                onChange={onInputChange}
+                className="mt-1 block w-full rounded-lg py-2.5 px-4 border border-[#D8D8D8] shadow-sm focus:border-blue-500 outline-blue-500"
+                required
+              />
+            </div>
+
+            <div>
+              <label htmlFor="nationality" className="block text-sm font-medium text-gray-700 mb-2">
+                Nationality <span className="text-red-500">*</span>
+              </label>
+              <select
+                id="nationality"
+                name="nationality"
+                value={formData.nationality?.value || ""}
+                onChange={(e) => {
+                  const selectedCountry = countries.find(
+                    (country) => country.label === e.target.value
+                  );
+                  onInputChange({
+                    target: {
+                      name: "nationality",
+                      value: selectedCountry || null,
+                    },
+                  });
+                }}
+                className="mt-1 block w-full rounded-lg py-2.5 px-4 border border-[#D8D8D8] shadow-sm focus:border-blue-500 outline-blue-500"
+                required
+              >
+                <option value="">Select Nationality</option>
+                {countries.map((country) => (
+                  <option key={country.label} value={country.label}>
+                    {country.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label htmlFor="workCountry" className="block text-sm font-medium text-gray-700 mb-2">
+                Work Country <span className="text-red-500">*</span>
+              </label>
+              <select
+                id="workCountry"
+                name="workCountry"
+                value={formData.workCountry?.value || ""}
+                onChange={(e) => {
+                  const selectedCountry = countries.find(
+                    (country) => country.label === e.target.value
+                  );
+                  onInputChange({
+                    target: {
+                      name: "workCountry",
+                      value: selectedCountry || null,
+                    },
+                  });
+                }}
+                className="mt-1 block w-full rounded-lg py-2.5 px-4 border border-[#D8D8D8] shadow-sm focus:border-blue-500 outline-blue-500"
+                required
+              >
+                <option value="">Select Work Country</option>
+                {countries.map((country) => (
+                  <option key={country.label} value={country.label}>
+                    {country.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label htmlFor="idNumber" className="block text-sm font-medium text-gray-700 mb-2">
+                ID Number <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                id="idNumber"
+                name="idNumber"
+                value={formData.idNumber || ""}
+                onChange={onInputChange}
+                className="mt-1 block w-full rounded-lg py-2.5 px-4 border border-[#D8D8D8] shadow-sm focus:border-blue-500 outline-blue-500"
+                required
+              />
+            </div>
+          </div>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 
-export default CompanyInfoStep; 
+export default CompanyInfoStep;

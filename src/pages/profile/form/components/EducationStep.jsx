@@ -1,61 +1,110 @@
-import React from 'react'
-import EducationFormModal from './EducationFormModal'
+import React, { useState } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { removeEducation } from '../../../../Redux/user-slice';
+import { FaPlus, FaEdit, FaTrash } from 'react-icons/fa';
+import { format } from 'date-fns';
+import EducationModal from './EducationModal';
 
 const EducationStep = () => {
-    return (
-        <>
-            <div className='flex justify-between items-center p-2'>
-                <h2 className='text-2xl font-bold'>
-                    Education
-                </h2>
+  const dispatch = useDispatch();
+  const { education } = useSelector(state => state.user);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentEducation, setCurrentEducation] = useState(null);
+  const [editIndex, setEditIndex] = useState(-1);
 
-                <EducationFormModal />
-            </div>
+  const handleAddClick = () => {
+    setCurrentEducation(null);
+    setEditIndex(-1);
+    setIsModalOpen(true);
+  };
 
-            <hr className="border-gray-200" />
+  const handleEditClick = (edu, index) => {
+    setCurrentEducation(edu);
+    setEditIndex(index);
+    setIsModalOpen(true);
+  };
 
-            <div className='px-6 pt-2'>
-                <div className='space-y-2'>
-                    <div className='flex justify-between'>
-                        <h3 className='text-xl font-semibold'>
-                            National University of Sciences & Technology (NUST)
-                        </h3>
+  const handleRemoveClick = (index) => {
+    if (window.confirm('Are you sure you want to remove this education entry?')) {
+      dispatch(removeEducation(index));
+    }
+  };
 
-                        <div className='flex space-x-2'>
-                            <button className="p-2 text-gray-600 hover:text-blue-500">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                </svg>
-                            </button>
-                            <button className="p-2 text-gray-600 hover:text-red-500">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
+    try {
+      return format(new Date(dateString), 'MMM yyyy');
+    } catch (error) {
+      return dateString;
+    }
+  };
 
-                    <p className='text-sm'>
-                        https://nust.edu.pk/
-                    </p>
-                    <p className='text-sm text-gray-600'>
-                        BSCS, Computer Science
-                    </p>
-                    <p className='text-sm text-gray-600'>
-                        Jan 2019-Jan 2021
-                    </p>
-                    <p className='text-sm text-gray-600'>
-                        3.89
-                    </p>
-                    <p className='text-sm text-gray-600'>
-                        Islamabad, Pakistan
-                    </p>
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-semibold text-gray-800">Education</h2>
+        <button
+          onClick={handleAddClick}
+          className="flex items-center gap-2 cursor-pointer transition-colors font-medium"
+        >
+          <FaPlus size={14} />
+          <span>Add Education</span>
+        </button>
+      </div>
 
-                    <hr className="my-4 border-gray-200" />
+      {education && education.length > 0 ? (
+        <div className="space-y-4">
+          {education.map((edu, index) => (
+            <div key={index} className="p-4 border border-gray-200 rounded-lg bg-white shadow-sm">
+              <div className="flex justify-between items-start">
+                <div>
+                  <h3 className="font-semibold text-lg text-gray-800">{edu.degree}</h3>
+                  <p className="text-gray-700">{edu.institution}</p>
+                  <p className="text-sm text-gray-500">
+                    {formatDate(edu.startDate)} - {edu.currentlyStudying ? 'Present' : formatDate(edu.endDate)}
+                  </p>
+                  {edu.fieldOfStudy && (
+                    <p className="text-gray-600 mt-1">Field of Study: {edu.fieldOfStudy}</p>
+                  )}
+                  {edu.grade && (
+                    <p className="text-gray-600">Grade: {edu.grade}</p>
+                  )}
+                  {edu.description && (
+                    <p className="text-gray-600 mt-2">{edu.description}</p>
+                  )}
                 </div>
+                <div className="flex space-x-2">
+                  <button
+                    onClick={() => handleEditClick(edu, index)}
+                    className="p-2 text-blue-600 hover:text-blue-800 transition-colors"
+                  >
+                    <FaEdit size={16} />
+                  </button>
+                  <button
+                    onClick={() => handleRemoveClick(index)}
+                    className="p-2 text-red-600 hover:text-red-800 transition-colors"
+                  >
+                    <FaTrash size={16} />
+                  </button>
+                </div>
+              </div>
             </div>
-        </>
-    )
-}
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-8 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+          <p className="text-gray-500">No education entries yet. Click "Add Education" to begin.</p>
+        </div>
+      )}
 
-export default EducationStep 
+      <EducationModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        initialData={currentEducation}
+        editIndex={editIndex}
+      />
+    </div>
+  );
+};
+
+export default EducationStep; 

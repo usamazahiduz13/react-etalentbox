@@ -3,7 +3,7 @@ import React from 'react'
 import { kpisData } from '../utilis/data'
 import heroAnimation from '../../../assets/animation/heroAnimation.json'
 import Lottie from 'lottie-react'
-
+import { Link } from 'react-router-dom'
 const HeroSection = () => {
    
     return (
@@ -19,7 +19,7 @@ const HeroSection = () => {
                     </p>
 
                     <div className="mt-8">
-                       <button className='primary-button'>Get Started</button>
+                       <Link to="/auth/register" className='primary-button'>Get Started</Link>
                     </div>
 
                 </div>

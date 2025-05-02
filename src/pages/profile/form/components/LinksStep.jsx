@@ -1,7 +1,6 @@
-import FormikField from '@/components/form/FormikField'
 import React from 'react'
 
-const LinksStep = () => {
+const LinksStep = ({ formData, onInputChange }) => {
     return (
         <>
             <div className='flex justify-between items-center p-2'>
@@ -13,44 +12,67 @@ const LinksStep = () => {
             <hr className="border-gray-200" />
 
             <div className='space-y-4 mt-4'>
-                <FormikField
-                    name='Facebook'
-                    label='Facebook'
-                    isRequired
-                />
-
-                <FormikField
-                    name='linkdin'
-                    label='Linkedin'
-                    isRequired
-                />
-
-                <FormikField
-                    name='Tweeter'
-                    label='Tweeter'
-                    isRequired
-                />
-
-                <FormikField
-                    name='instagram'
-                    label='Instagram'
-                    isRequired
-                />
-
-                <div className='flex justify-end space-x-4'>
-                    <button 
-                        type="button"
-                        className="px-4 py-2 border border-primary text-primary rounded-md hover:bg-gray-50"
-                    >
-                        Cancel
-                    </button>
-                    <button 
-                        type="button"
-                        className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark"
-                    >
-                        Submit
-                    </button>
+                <div>
+                    <label htmlFor="facebook" className="block text-sm font-medium text-gray-700">
+                        Facebook <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                        type="text"
+                        id="facebook"
+                        name="facebook"
+                        value={formData.facebook || ''}
+                        onChange={onInputChange}
+                       className="mt-1 block w-full rounded-lg py-2 px-4 border border-[#D8D8D8] shadow-sm focus:border-blue-500 outline-blue-500"
+                        required
+                    />
                 </div>
+
+                <div>
+                    <label htmlFor="linkedin" className="block text-sm font-medium text-gray-700">
+                        LinkedIn <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                        type="text"
+                        id="linkedin"
+                        name="linkedin"
+                        value={formData.linkedin || ''}
+                        onChange={onInputChange}
+                        className="mt-1 block w-full rounded-lg py-2 px-4 border border-[#D8D8D8] shadow-sm focus:border-blue-500 outline-blue-500"
+                        required
+                    />
+                </div>
+
+                <div>
+                    <label htmlFor="twitter" className="block text-sm font-medium text-gray-700">
+                        Twitter <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                        type="text"
+                        id="twitter"
+                        name="twitter"
+                        value={formData.twitter || ''}
+                        onChange={onInputChange}
+                        className="mt-1 block w-full rounded-lg py-2 px-4 border border-[#D8D8D8] shadow-sm focus:border-blue-500 outline-blue-500"
+                        required
+                    />
+                </div>
+
+                <div>
+                    <label htmlFor="instagram" className="block text-sm font-medium text-gray-700">
+                        Instagram <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                        type="text"
+                        id="instagram"
+                        name="instagram"
+                        value={formData.instagram || ''}
+                        onChange={onInputChange}
+                        className="mt-1 block w-full rounded-lg py-2 px-4 border border-[#D8D8D8] shadow-sm focus:border-blue-500 outline-blue-500"
+                        required
+                    />
+                </div>
+
+               
             </div>
         </>
     )

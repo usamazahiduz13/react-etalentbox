@@ -1,12 +1,13 @@
-
-import Header from '../../layout/DashBoardNavbar'
+import Header from "../../layout/DashBoardNavbar";
+import Stepper from "./form/index";
 
 const ProfilePage = () => {
-    return (
-        <div>
-            <Header />
-        </div>
-    )
-}
+  return (
+    <div className="bg-[#F9F9F9]">
+      <Header />
+      <Stepper />
+    </div>
+  );
+};
 
-export default ProfilePage 
+export default ProfilePage;

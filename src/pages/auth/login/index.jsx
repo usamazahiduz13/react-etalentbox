@@ -4,10 +4,10 @@ import MicrosoftImg from "../../../assets/imgs/auth/microsoft.png";
 import GoogleImg from "../../../assets/imgs/auth/google.png";
 import { Link } from "react-router-dom";
 import { useState } from "react";
-import { fetchApi } from "../../../utils/axios";
 import { toast } from "sonner";
 import { RxEyeOpen, RxEyeClosed } from "react-icons/rx";
 import { login, resetPasswordEmail } from "../../../services/auth";
+import logo from '../../../assets/logo.svg'
 
 const LoginPage = () => {
   const [formData, setFormData] = useState({
@@ -17,6 +17,7 @@ const LoginPage = () => {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [isAgree, setIsAgree] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isSendLink, setIsSendLink] = useState(false);
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState("");
   const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
   const [error, setError] = useState(null);
@@ -29,7 +30,10 @@ const LoginPage = () => {
     try {
       const response = await login(formData);
       toast.success(response.message);
-      // Handle successful login (e.g., store token, redirect, etc.)
+      console.log(response);
+      const { baseModel, user, success } = response || {}
+      localStorage.setItem('token', baseModel?.data)
+      localStorage.setItem('userId', user)
     } catch (err) {
       setError(err.message || "Login failed");
       toast.error(err.message || "Login failed");
@@ -40,7 +44,7 @@ const LoginPage = () => {
 
   const handleForgotPassword = async (e) => {
     e.preventDefault();
-    setLoading(true);
+    setIsSendLink(true);
     setError(null);
 
     try {
@@ -52,7 +56,7 @@ const LoginPage = () => {
       setError(err.message || "Failed to send reset link");
       toast.error(err.message || "Failed to send reset link");
     } finally {
-      setLoading(false);
+      setIsSendLink(false);
     }
   };
 
@@ -66,10 +70,11 @@ const LoginPage = () => {
             alt="Login illustration"
           />
         </div>
-        <div className="max-w-md mx-auto w-full bg-white rounded-[16px] py-8 px-8 shadow-2xl">
+        <div className="max-w-md mx-auto w-full bg-white rounded-[16px] py-8 md:px-8  sm:px-4  px-2 shadow-2xl">
           <div className="flex flex-col space-y-8 w-full">
-            <div className="text-3xl font-medium text-center mb-4 text-[#14589C]">
-              e talent
+            <div className="text-3xl font-medium text-center mb-4 text-[#14589C] flex items-center justify-center gap-2">
+              <img src={logo} alt="eTalentBox Logo" className="h-8 md:h-10" />
+              <span className="text-2xl font-bold">e talent</span>
             </div>
 
             <div className="space-y-2">
@@ -133,14 +138,7 @@ const LoginPage = () => {
                     htmlFor="terms"
                     className="ml-2 block text-sm text-gray-700"
                   >
-                    I agree to the{" "}
-                    <a href="#" className="text-blue-600 hover:underline">
-                      Terms of Service
-                    </a>{" "}
-                    and{" "}
-                    <a href="#" className="text-blue-600 hover:underline">
-                      Privacy Policy
-                    </a>
+                   Remember me
                   </label>
                 </div>
                 <button
@@ -154,7 +152,7 @@ const LoginPage = () => {
 
               <button
                 onClick={handleLogin}
-                className="primary-button w-full py-3"
+                className="primary-button w-full py-3 rounded-[8px]"
                 disabled={loading}
               >
                 {loading ? "Logging in..." : "Login"}
@@ -167,15 +165,13 @@ const LoginPage = () => {
               <div className="flex-grow border-t border-gray-300"></div>
             </div>
 
-            <div className="flex gap-3 w-full flex-col">
-              <button className="bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 px-4 rounded-lg flex items-center justify-center gap-3 font-medium">
+            <div className="flex gap-3 w-full items-center justify-center">
+              <button className="bg-gray-100 hover:bg-gray-200 p-2 rounded-full">
                 <img src={MicrosoftImg} width={25} alt="Microsoft logo" />
-                Sign in with Microsoft
               </button>
 
-              <button className="bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 px-4 rounded-lg flex items-center justify-center gap-3 font-medium">
+              <button className="bg-gray-100 hover:bg-gray-200 p-2 rounded-full">
                 <img src={GoogleImg} width={25} alt="Google logo" />
-                Sign in with Google
               </button>
             </div>
 
@@ -221,10 +217,10 @@ const LoginPage = () => {
                 </button>
                 <button
                   type="submit"
-                  className="primary-button px-4 py-2"
-                  disabled={loading}
+                  className="primary-button px-4 py-2 rounded-lg"
+                  disabled={isSendLink}
                 >
-                  {loading ? "Sending..." : "Send Reset Link"}
+                  {isSendLink ? "Sending..." : "Send Reset Link"}
                 </button>
               </div>
             </form>

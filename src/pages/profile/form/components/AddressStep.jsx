@@ -1,13 +1,15 @@
 import React from 'react';
 
-const AddressStep = () => {
+import { countries } from "../../utilis/helpers";
+
+const AddressStep = ({ formData, onInputChange }) => {
     return (
         <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-md">
             <h2 className='text-2xl font-bold mb-6 text-gray-800'>
                 Address Step
             </h2>
 
-            <form className='space-y-4'>
+            <div className='space-y-4'>
                 {/* Street Field */}
                 <div className='space-y-1'>
                     <label htmlFor='street' className='block text-sm font-medium text-gray-700'>
@@ -17,6 +19,8 @@ const AddressStep = () => {
                         type='text'
                         id='street'
                         name='street'
+                        value={formData.street || ''}
+                        onChange={onInputChange}
                         className='w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
                         required
                     />
@@ -31,6 +35,8 @@ const AddressStep = () => {
                         type='text'
                         id='flat'
                         name='flat'
+                        value={formData.flat || ''}
+                        onChange={onInputChange}
                         className='w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
                         required
                     />
@@ -44,14 +50,30 @@ const AddressStep = () => {
                             City <span className='text-red-500'>*</span>
                         </label>
                         <select
-                            id='city'
-                            name='city'
-                            className='w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-[url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'currentColor\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'%3e%3cpolyline points=\'6 9 12 15 18 9\'%3e%3c/polyline%3e%3c/svg%3e")] bg-no-repeat bg-right-0.5 bg-center bg-[length:1em]'
-                            required
-                        >
-                            <option value=''>Select City</option>
-                            {/* Add your city options here */}
-                        </select>
+              id="city"
+              name="city"
+              value={formData.city?.label || ""}
+              onChange={(e) => {
+                const selectedCountry = countries.find(
+                  (country) => country.label === e.target.value
+                ).label;
+                onInputChange({
+                  target: {
+                    name: "city",
+                    value: selectedCountry || null,
+                  },
+                });
+              }}
+              className="mt-1 block w-full rounded-lg py-2 px-4 border border-[#D8D8D8] shadow-sm focus:border-blue-500 outline-blue-500"
+              required
+            >
+              <option value="">Select Country</option>
+              {countries.map((country) => (
+                <option key={country.label} value={country.label}>
+                  {country.label}
+                </option>
+              ))}
+            </select>
                     </div>
 
                     {/* State Field */}
@@ -60,14 +82,30 @@ const AddressStep = () => {
                             State <span className='text-red-500'>*</span>
                         </label>
                         <select
-                            id='state'
-                            name='state'
-                            className='w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-[url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'currentColor\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'%3e%3cpolyline points=\'6 9 12 15 18 9\'%3e%3c/polyline%3e%3c/svg%3e")] bg-no-repeat bg-right-0.5 bg-center bg-[length:1em]'
-                            required
-                        >
-                            <option value=''>Select State</option>
-                            {/* Add your state options here */}
-                        </select>
+              id="workCountry"
+              name="workCountry"
+              value={formData.state.label || ""}
+              onChange={(e) => {
+                const selectedCountry = countries.find(
+                  (country) => country.label === e.target.value
+                ).label;
+                onInputChange({
+                  target: {
+                    name: "state",
+                    value: selectedCountry || null,
+                  },
+                });
+              }}
+              className="mt-1 block w-full rounded-lg py-2 px-4 border border-[#D8D8D8] shadow-sm focus:border-blue-500 outline-blue-500"
+              required
+            >
+              <option value="">Select State</option>
+              {countries.map((country) => (
+                <option key={country.label} value={country.label}>
+                  {country.label}
+                </option>
+              ))}
+            </select>
                     </div>
                 </div>
 
@@ -80,11 +118,13 @@ const AddressStep = () => {
                         type='text'
                         id='zipcode'
                         name='zipcode'
+                        value={formData.zipcode || ''}
+                        onChange={onInputChange}
                         className='w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
                         required
                     />
                 </div>
-            </form>
+            </div>
         </div>
     )
 }

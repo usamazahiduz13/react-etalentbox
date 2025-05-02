@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import Logo from '../../../assets/imgs/logo.png';
 import { Link } from 'react-router-dom';
-import { FiMenu, FiX } from 'react-icons/fi'; // Import hamburger and close icons
+import { FiMenu, FiX } from 'react-icons/fi';
+import logo from '../../../assets/logo.svg'
 
 const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -13,13 +14,14 @@ const Header = () => {
   return (
     <div className="w-full bg-[#F5F7FA]">
       <div className="flex justify-between items-center py-5 md:px-8 lg:px-16 px-4 max-w-[1280px] mx-auto">
-        <Link to="/">
-          <img src={Logo} alt="eTalentBox Logo" className="h-8 md:h-10" />
+        <Link className='flex items-center gap-2' to="/">
+          <img src={logo} alt="eTalentBox Logo" className="h-8 md:h-10" />
+          <span className='text-2xl font-bold'>e talent</span>
         </Link>
         
         {/* Desktop Navigation - hidden on mobile */}
         <div className="hidden md:flex items-center space-x-8">
-          <Link to="/portal/jobs" className="text-blue-600 font-medium no-underline hover:text-blue-800 transition-colors">
+          <Link to="/find-jobs" className="text-blue-600 font-medium no-underline hover:text-blue-800 transition-colors">
             Find Jobs
           </Link>
           
@@ -49,7 +51,7 @@ const Header = () => {
         <div className="md:hidden bg-white py-4 px-4 shadow-lg">
           <div className="flex flex-col space-y-4">
             <Link 
-              to="/portal/jobs" 
+              to="/find-jobs" 
               className="text-blue-600 font-medium no-underline hover:text-blue-800 py-2"
               onClick={() => setIsMobileMenuOpen(false)}
             >

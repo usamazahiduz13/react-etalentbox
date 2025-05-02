@@ -1,61 +1,117 @@
-import React from 'react'
-import ExperienceFormModal from './ExperienceFormModal'
+import React, { useState } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { removeExperience } from '../../../../Redux/user-slice';
+import { FaPlus, FaEdit, FaTrash } from 'react-icons/fa';
+import { format } from 'date-fns';
+import ExperienceModal from './ExperienceModal';
 
 const ExperienceStep = () => {
-    return (
-        <>
-            <div className='flex justify-between items-center p-2'>
-                <h2 className='text-2xl font-bold'>
-                    Experience
-                </h2>
+  const dispatch = useDispatch();
+  const { experiences } = useSelector(state => state.user);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentExperience, setCurrentExperience] = useState(null);
+  const [editIndex, setEditIndex] = useState(-1);
 
-                <ExperienceFormModal />
-            </div>
+  const handleAddClick = () => {
+    setCurrentExperience(null);
+    setEditIndex(-1);
+    setIsModalOpen(true);
+  };
 
-            <hr className="border-gray-200" />
+  const handleEditClick = (exp, index) => {
+    setCurrentExperience(exp);
+    setEditIndex(index);
+    setIsModalOpen(true);
+  };
 
-            <div className='px-6 pt-2'>
-                <div className='space-y-2'>
-                    <div className='flex justify-between'>
-                        <h3 className='text-xl font-semibold'>
-                            UI/UX Designer
-                        </h3>
+  const handleRemoveClick = (index) => {
+    if (window.confirm('Are you sure you want to remove this experience entry?')) {
+      dispatch(removeExperience(index));
+    }
+  };
 
-                        <div className='flex space-x-2'>
-                            <button className="p-2 text-gray-600 hover:text-blue-500">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                </svg>
-                            </button>
-                            <button className="p-2 text-gray-600 hover:text-red-500">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                </svg>
-                            </button>
-                        </div>
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
+    try {
+      return format(new Date(dateString), 'MMM yyyy');
+    } catch (error) {
+      return dateString;
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-semibold text-gray-800">Work Experience</h2>
+        <button
+          onClick={handleAddClick}
+          className="flex items-center gap-2 cursor-pointer transition-colors"
+        >
+          <FaPlus size={14} />
+          <span>Add Experience</span>
+        </button>
+      </div>
+
+      {experiences && experiences.length > 0 ? (
+        <div className="space-y-4">
+          {experiences.map((exp, index) => (
+            <div key={index} className="p-4 border border-gray-200 rounded-lg bg-white shadow-sm">
+              <div className="flex justify-between items-start">
+                <div>
+                  <h3 className="font-semibold text-lg text-gray-800">{exp.title}</h3>
+                  <p className="text-gray-700">{exp.company}</p>
+                  <p className="text-sm text-gray-500">
+                    {formatDate(exp.startDate)} - {exp.currentlyWorking ? 'Present' : formatDate(exp.endDate)}
+                  </p>
+                  {exp.employmentType && (
+                    <p className="text-gray-600 mt-1">Employment Type: {exp.employmentType}</p>
+                  )}
+                  {(exp.city || exp.country) && (
+                    <p className="text-gray-600">
+                      Location: {[exp.city, exp.country].filter(Boolean).join(', ')}
+                    </p>
+                  )}
+                  {exp.industry && (
+                    <p className="text-gray-600">Industry: {exp.industry}</p>
+                  )}
+                  {exp.description && (
+                    <div className="mt-2">
+                      <p className="text-gray-600">{exp.description}</p>
                     </div>
-
-                    <p className='text-sm'>
-                        Behance Collaboration · Full-time
-                    </p>
-                    <p className='text-sm text-gray-600'>
-                        Remote
-                    </p>
-                    <p className='text-sm text-gray-600'>
-                        Islamabad, Pakistan
-                    </p>
-                    <p className='text-sm text-gray-600'>
-                        Participated in design challenges and collaborative projects on Behance, contributing to innovative UI/UX solutions.
-                        Collaborated with international designers to create and refine user interfaces for web and mobile applications.
-                        Conducted online critique sessions to provide and receive feedback, improving design quality and consistency.
-                        Presented design concepts and iterations through virtual meetings, effectively communicating design ideas and incorporating stakeholder feedback.
-                    </p>
-
-                    <hr className="my-4 border-gray-200" />
+                  )}
                 </div>
+                <div className="flex space-x-2">
+                  <button
+                    onClick={() => handleEditClick(exp, index)}
+                    className="p-2 text-blue-600 hover:text-blue-800 transition-colors"
+                  >
+                    <FaEdit size={16} />
+                  </button>
+                  <button
+                    onClick={() => handleRemoveClick(index)}
+                    className="p-2 text-red-600 hover:text-red-800 transition-colors"
+                  >
+                    <FaTrash size={16} />
+                  </button>
+                </div>
+              </div>
             </div>
-        </>
-    )
-}
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-8 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+          <p className="text-gray-500">No experience entries yet. Click "Add Experience" to begin.</p>
+        </div>
+      )}
 
-export default ExperienceStep 
+      <ExperienceModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        initialData={currentExperience}
+        editIndex={editIndex}
+      />
+    </div>
+  );
+};
+
+export default ExperienceStep; 
