@@ -2,11 +2,13 @@ import React from "react";
 import LoginImg from "../../../assets/imgs/auth/sign-img.png";
 import MicrosoftImg from "../../../assets/imgs/auth/microsoft.png";
 import GoogleImg from "../../../assets/imgs/auth/google.png";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { toast } from "sonner";
 import { RxEyeOpen, RxEyeClosed } from "react-icons/rx";
-import { login, resetPasswordEmail } from "../../../services/auth";
+import { resetPasswordEmail } from "../../../services/auth";
+import { useDispatch, useSelector } from "react-redux";
+import { login } from "../../../Redux/auth-slice";
 import logo from '../../../assets/logo.svg'
 
 const LoginPage = () => {
@@ -16,36 +18,40 @@ const LoginPage = () => {
   });
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [isAgree, setIsAgree] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [isSendLink, setIsSendLink] = useState(false);
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState("");
   const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
-  const [error, setError] = useState(null);
+  
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { loading, error, isAuthenticated, isNewUser } = useSelector(state => state.auth);
+
+  // Redirect if already authenticated
+  React.useEffect(() => {
+    if (isAuthenticated) {
+      if (isNewUser) {
+        navigate('/dashboard/add-details');
+      } else {
+        navigate('/dashboard');
+      }
+    }
+  }, [isAuthenticated, isNewUser, navigate]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setLoading(true);
-    setError(null);
-
+    
     try {
-      const response = await login(formData);
-      toast.success(response.message);
-      console.log(response);
-      const { baseModel, user, success } = response || {}
-      localStorage.setItem('token', baseModel?.data)
-      localStorage.setItem('userId', user)
+      await dispatch(login(formData)).unwrap();
+      // Navigation will be handled by the useEffect above
     } catch (err) {
-      setError(err.message || "Login failed");
-      toast.error(err.message || "Login failed");
-    } finally {
-      setLoading(false);
+      // Error handling is done in the auth slice
+      console.error('Login error:', err);
     }
   };
 
   const handleForgotPassword = async (e) => {
     e.preventDefault();
     setIsSendLink(true);
-    setError(null);
 
     try {
       const response = await resetPasswordEmail(forgotPasswordEmail);
@@ -53,7 +59,6 @@ const LoginPage = () => {
       setShowForgotPasswordModal(false);
       setForgotPasswordEmail("");
     } catch (err) {
-      setError(err.message || "Failed to send reset link");
       toast.error(err.message || "Failed to send reset link");
     } finally {
       setIsSendLink(false);
@@ -83,6 +88,12 @@ const LoginPage = () => {
                 Welcome Back to Talent Hub!
               </p>
             </div>
+
+            {error && (
+              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+                {error}
+              </div>
+            )}
 
             <form className="space-y-6">
               <div className="space-y-4">

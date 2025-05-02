@@ -1,27 +1,66 @@
 import axios from "axios";
 import { toast } from "sonner";
+import { store } from '../Redux/store';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL;
+const API_BASE_URL = 'http://api.etalentbox.com/api';
 
-// Get auth token from localStorage
+// Get auth token from Redux store
 const getAuthHeader = () => {
-  const token = localStorage.getItem('token');
+  const token = store.getState().auth.token;
   return token ? { Authorization: `Bearer ${token}` } : {};
 };
 
 // Create or update profile
 export const createProfile = async (payload) => {
   try {
-    const response = await axios.post(`${API_BASE_URL}/Profile`, payload, {
-      headers: {
-        ...getAuthHeader(),
-        'Content-Type': 'application/json'
+    // Get userId from Redux store instead of payload
+    const userId = store.getState().auth.userId;
+    
+    if (!userId) {
+      throw new Error('User not authenticated');
+    }
+    
+    // Ensure userId is included in the payload
+    const profileData = {
+      ...payload,
+      userId
+    };
+    
+    // Create FormData for file upload
+    const formData = new FormData();
+    
+    // Add all profile data to FormData
+    Object.keys(profileData).forEach(key => {
+      if (key === 'artifactUrl' && typeof profileData[key] === 'string' && profileData[key].startsWith('data:')) {
+        // Convert base64 to blob for image upload
+        const base64Data = profileData[key].split(',')[1];
+        const byteCharacters = atob(base64Data);
+        const byteArrays = [];
+        
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteArrays.push(byteCharacters.charCodeAt(i));
+        }
+        
+        const blob = new Blob([new Uint8Array(byteArrays)], { type: 'image/jpeg' });
+        formData.append('artifactUrl', blob, 'profile-image.jpg');
+      } else {
+        formData.append(key, profileData[key]);
       }
     });
+
+    const response = await axios.post(`${API_BASE_URL}/Profile`, profileData, {
+      headers: {
+        ...getAuthHeader(),
+        'accept': 'application/json',
+        'Content-Type': 'application/json-patch+json'
+      }
+    });
+
     toast.success('Profile created successfully');
     return response.data;
   } catch (error) {
-    toast.error(error.response?.data?.message || error.message);
+    console.error('Profile creation error:', error);
+    toast.error(error.response?.data?.message || 'Failed to create profile');
     throw error;
   }
 };

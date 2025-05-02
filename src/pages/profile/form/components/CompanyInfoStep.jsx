@@ -6,6 +6,8 @@ import mammoth from "mammoth";
 import * as pdfjsLib from "pdfjs-dist";
 import { FaRegEdit } from "react-icons/fa";
 import { FaChevronDown } from "react-icons/fa";
+import { useDispatch } from "react-redux";
+import { updateProfileData } from "../../../../Redux/user-slice";
 
 // Initialize PDF.js worker for Vite
 pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
@@ -14,8 +16,10 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
 ).href;
 
 const CompanyInfoStep = ({ formData, onInputChange }) => {
+  const dispatch = useDispatch();
   const [profileLevelDesp, setProfileLevelDesp] = useState("{Description}");
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+  const [avatar, setAvatar] = useState(AvatarImg);
 
   console.log(formData);
   const handleFileUpload = async (file) => {
@@ -150,7 +154,7 @@ const CompanyInfoStep = ({ formData, onInputChange }) => {
       onInputChange({
         target: {
           name: "nationality",
-          value: matchedNationality || null,
+          value: matchedNationality ? matchedNationality.label : "",
         },
       });
     }
@@ -164,7 +168,7 @@ const CompanyInfoStep = ({ formData, onInputChange }) => {
       onInputChange({
         target: {
           name: "workCountry",
-          value: matchedWorkCountry || null,
+          value: matchedWorkCountry ? matchedWorkCountry.label : "",
         },
       });
     }
@@ -182,18 +186,37 @@ const CompanyInfoStep = ({ formData, onInputChange }) => {
     }
   };
 
+  const handleImageUpload = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setAvatar(reader.result);
+        // Update Redux store with the image data
+        dispatch(updateProfileData({ artifactUrl: reader.result }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   return (
     <div className="md:px-8 px-4 py-6">
       <div className="flex justify-center mb-8">
         <div className="relative">
           <img
-            src={AvatarImg}
+            src={avatar}
             alt="Avatar"
             className="w-24 h-24 rounded-full object-cover"
           />
-          <span className="absolute bottom-0 right-0 bg-white rounded-full p-1.5 shadow-sm">
+          <label className="absolute bottom-0 right-0 bg-white rounded-full p-1.5 shadow-sm cursor-pointer">
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageUpload}
+              className="hidden"
+            />
             <FaRegEdit className="w-5 h-5 text-gray-600" />
-          </span>
+          </label>
         </div>
       </div>
 
@@ -356,15 +379,12 @@ const CompanyInfoStep = ({ formData, onInputChange }) => {
               <select
                 id="nationality"
                 name="nationality"
-                value={formData.nationality?.value || ""}
+                value={formData.nationality || ""}
                 onChange={(e) => {
-                  const selectedCountry = countries.find(
-                    (country) => country.label === e.target.value
-                  );
                   onInputChange({
                     target: {
                       name: "nationality",
-                      value: selectedCountry || null,
+                      value: e.target.value,
                     },
                   });
                 }}
@@ -373,7 +393,7 @@ const CompanyInfoStep = ({ formData, onInputChange }) => {
               >
                 <option value="">Select Nationality</option>
                 {countries.map((country) => (
-                  <option key={country.label} value={country.label}>
+                  <option key={country.code} value={country.label}>
                     {country.label}
                   </option>
                 ))}
@@ -387,15 +407,12 @@ const CompanyInfoStep = ({ formData, onInputChange }) => {
               <select
                 id="workCountry"
                 name="workCountry"
-                value={formData.workCountry?.value || ""}
+                value={formData.workCountry || ""}
                 onChange={(e) => {
-                  const selectedCountry = countries.find(
-                    (country) => country.label === e.target.value
-                  );
                   onInputChange({
                     target: {
                       name: "workCountry",
-                      value: selectedCountry || null,
+                      value: e.target.value,
                     },
                   });
                 }}
@@ -404,7 +421,7 @@ const CompanyInfoStep = ({ formData, onInputChange }) => {
               >
                 <option value="">Select Work Country</option>
                 {countries.map((country) => (
-                  <option key={country.label} value={country.label}>
+                  <option key={country.code} value={country.label}>
                     {country.label}
                   </option>
                 ))}

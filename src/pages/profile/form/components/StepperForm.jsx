@@ -12,20 +12,22 @@ import EducationStep from './EducationStep'
 import ReviewStep from './ReviewStep'
 import { createUserProfile, updateUserProfile, fetchUserProfile, updateProfileData, setCurrentStep, nextStep, prevStep } from '../../../../Redux/user-slice'
 import { stepsValidations } from '../../utilis/formUtilis'
+import { createProfile } from '../../../../services/profile'
 
 const StepperForm = () => {
     const dispatch = useDispatch()
     const navigate = useNavigate()
-    const { profile, loading, error, currentStep, success } = useSelector(state => state.user)
+    const { profile, loading: profileLoading, currentStep } = useSelector(state => state.user)
+    const { userId, isAuthenticated, isNewUser } = useSelector(state => state.auth)
     const [formErrors, setFormErrors] = useState({})
-    const userId = localStorage.getItem('userId')
-
-    // Fetch profile if user is logged in
+    
+    // Redirect to login if not authenticated
     useEffect(() => {
-        if (userId) {
-           // dispatch(fetchUserProfile(userId))
+        if (!isAuthenticated) {
+            toast.error('Please login to create a profile')
+            navigate('/login')
         }
-    }, [dispatch, userId])
+    }, [isAuthenticated, navigate])
 
     // Validate current step
     const validateStep = (step) => {
@@ -48,9 +50,34 @@ const StepperForm = () => {
     }
 
     // Handle next button click
-    const handleNext = () => {
+    const handleNext = async () => {
         if (validateStep(currentStep)) {
-            dispatch(nextStep())
+            if (currentStep === 0) {
+                // Make API call after first step validation
+                try {
+                    if (!userId) {
+                        toast.error('User ID not found. Please login again.')
+                        navigate('/login')
+                        return
+                    }
+
+                    // Make API call to create/update profile
+                    await createProfile(profile)
+                    
+                    toast.success('Profile saved successfully')
+                    dispatch(nextStep())
+                } catch (error) {
+                    toast.error('Failed to save profile')
+                    console.error('Profile submission error:', error)
+                    
+                    // Redirect to login if user is not authenticated
+                    if (error.message === 'User not authenticated') {
+                        navigate('/login')
+                    }
+                }
+            } else {
+                dispatch(nextStep())
+            }
         } else {
             toast.error('Please fill all required fields')
         }
@@ -59,30 +86,6 @@ const StepperForm = () => {
     // Handle back button click
     const handleBack = () => {
         dispatch(prevStep())
-    }
-
-    // Handle form submission (final step)
-    const handleSubmit = async (e) => {
-        e.preventDefault()
-        
-        try {
-            // Combine all data into one payload
-            const formData = {
-                ...profile,
-                userId
-            }
-            
-            if (profile.id) {
-                await dispatch(updateUserProfile(formData)).unwrap()
-            } else {
-                await dispatch(createUserProfile(formData)).unwrap()
-            }
-            
-            toast.success('Profile saved successfully')
-            navigate('/dashboard')
-        } catch (error) {
-            toast.error('Failed to save profile')
-        }
     }
 
     // Handle input changes
@@ -108,8 +111,15 @@ const StepperForm = () => {
         dispatch(updateProfileData({ [fieldName]: file }))
     }
 
+    // Show loading spinner when profile is loading
+    if (profileLoading) {
+        return <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        </div>
+    }
+
     return (
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleNext}>
             <div className="w-full flex md:flex-row flex-col items-start justify-center gap-6 h-full">
                 <div className="md:w-[35%] w-full h-full">
                     <StepperFormSteps currentStep={currentStep} setStep={(step) => dispatch(setCurrentStep(step))} />
@@ -174,7 +184,7 @@ const StepperForm = () => {
                             type="button"
                             className="px-6 py-2 border border-primary text-primary rounded-[16px] hover:bg-gray-50 transition-all disabled:opacity-50"
                             onClick={handleBack}
-                            disabled={currentStep === 0 || loading}
+                            disabled={currentStep === 0 || profileLoading}
                         >
                             Back
                         </button>
@@ -184,17 +194,17 @@ const StepperForm = () => {
                                 type="button"
                                 className="primary-button"
                                 onClick={handleNext}
-                                disabled={loading}
+                                disabled={profileLoading}
                             >
-                                {loading ? 'Loading...' : 'Next'}
+                                {profileLoading ? 'Loading...' : 'Next'}
                             </button>
                         ) : (
                             <button 
                                 type="submit"
                                 className="primary-button"
-                                disabled={loading}
+                                disabled={profileLoading}
                             >
-                                {loading ? 'Saving...' : 'Save Profile'}
+                                {profileLoading ? 'Saving...' : 'Save Profile'}
                             </button>
                         )}
                     </div>
