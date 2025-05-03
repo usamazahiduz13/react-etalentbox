@@ -1,5 +1,6 @@
 import React from "react";
 import heroImg from "../../../assets/imgs/landingpage/ready-to.png"; // Replace with your actual image path
+import { Link } from "react-router-dom";
 
 const ReadyToJump = () => {
   return (
@@ -13,9 +14,9 @@ const ReadyToJump = () => {
         <p className="text-sm text-blue-200 mb-6">
           Click the button below to explore thousands of job listings.
         </p>
-        <button className="bg-white text-blue-800 font-semibold py-2 px-6 rounded-[16px] shadow hover:bg-blue-100 transition">
+        <Link to='/find-jobs' className="bg-white text-blue-800 font-semibold py-2 px-6 rounded-[16px] shadow hover:bg-blue-100 transition">
           Find Your Dream Job Now
-        </button>
+        </Link>
       </div>
 
       {/* Right Side Image */}

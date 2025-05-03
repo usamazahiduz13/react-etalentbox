@@ -1,29 +1,51 @@
 // api.js
-import axios from 'axios';
+import axios from "axios";
 
-const API_BASE_URL = 'http://api.etalentbox.com/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://api.etalentbox.com/api';
 
-// Login function - kept for backward compatibility, but prefer using the auth slice login thunk
+// Login function
 export const login = async (payload) => {
   try {
     const response = await axios.post(`${API_BASE_URL}/Account/Logon`, payload);
     const { baseModel, user } = response.data || {};
-    
-    // The format returned by the API - reformat for auth slice
+
+    // Store token in localStorage
+    if (baseModel?.data) {
+      localStorage.setItem("token", baseModel.data);
+      localStorage.setItem("userId", user);
+    }
+
+    // Return the formatted response
     return {
       userId: user,
       token: baseModel?.data,
-      isNewUser: !!response.data.isNewUser
+      isNewUser: false,
     };
   } catch (error) {
     throw error.response?.data || { message: error.message };
   }
 };
 
+// Get stored auth data
+export const getStoredAuthData = () => {
+  const token = localStorage.getItem("token");
+  const userId = localStorage.getItem("userId");
+  return { token, userId };
+};
+
+// Clear stored auth data
+export const clearStoredAuthData = () => {
+  localStorage.removeItem("token");
+  localStorage.removeItem("userId");
+};
+
 // Register function
 export const register = async (payload) => {
   try {
-    const response = await axios.post(`${API_BASE_URL}/Account/Register`, payload);
+    const response = await axios.post(
+      `${API_BASE_URL}/Account/CandidateRegister`,
+      payload
+    );
     return response.data;
   } catch (error) {
     throw error.response?.data || { message: error.message };
@@ -33,7 +55,10 @@ export const register = async (payload) => {
 // Reset password email
 export const resetPasswordEmail = async (email) => {
   try {
-    const response = await axios.post(`${API_BASE_URL}/Account/ForgotPassword`, { email });
+    const response = await axios.post(
+      `${API_BASE_URL}/Account/ForgotPassword`,
+      { email }
+    );
     return response.data;
   } catch (error) {
     throw error.response?.data || { message: error.message };
@@ -43,7 +68,10 @@ export const resetPasswordEmail = async (email) => {
 // Reset password with token
 export const resetPassword = async (payload) => {
   try {
-    const response = await axios.post(`${API_BASE_URL}/Account/ResetPassword`, payload);
+    const response = await axios.post(
+      `${API_BASE_URL}/Account/ResetPassword`,
+      payload
+    );
     return response.data;
   } catch (error) {
     throw error.response?.data || { message: error.message };
@@ -55,8 +83,8 @@ export const getUserProfile = async (token) => {
   try {
     const response = await axios.get(`${API_BASE_URL}/Account/Profile`, {
       headers: {
-        Authorization: `Bearer ${token}`
-      }
+        Authorization: `Bearer ${token}`,
+      },
     });
     return response.data;
   } catch (error) {

@@ -5,8 +5,9 @@ import { IoMdSettings } from "react-icons/io";
 import { FiLogOut, FiUser } from "react-icons/fi";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { logout } from "../Redux/auth-slice";
 import logo from '../assets/logo.svg'
+import { clearStoredAuthData } from '../services/auth';
+import { toggleAuth } from '../Redux/auth-slice';
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -14,7 +15,7 @@ const Header = () => {
   const profileRef = useRef(null);
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { userId, isAuthenticated } = useSelector(state => state.auth);
+  const { userInfo, isLogin } = useSelector(state => state.auth);
   const { profile } = useSelector(state => state.user);
 
   // Close dropdown when clicking outside
@@ -33,7 +34,8 @@ const Header = () => {
 
   const handleLogout = async () => {
     try {
-      await dispatch(logout()).unwrap();
+      clearStoredAuthData();
+      dispatch(toggleAuth({ isLogin: false, userInfo: null }));
       navigate('/auth/login');
     } catch (error) {
       console.error('Logout failed:', error);
@@ -51,7 +53,7 @@ const Header = () => {
 
         {/* Desktop Nav */}
         <nav className="hidden md:flex items-center space-x-6 font-medium text-base">
-          <Link to="/dashboard">Dashboard</Link>
+          <Link to="/dashboard">Overview</Link>
           <Link to="/find-jobs">Find Job</Link>
           <Link href="#">Applications</Link>
           <Link href="#">News</Link>
@@ -137,7 +139,7 @@ const Header = () => {
       {/* Mobile Nav */}
       <div className={`${isOpen ? 'block' : 'hidden'} md:hidden px-4 pb-4 bg-[#14589C]`}>
         <div className="flex flex-col space-y-2 text-base font-medium">
-          <Link to="/dashboard">Dashboard</Link>
+          <Link to="/dashboard">Overview</Link>
           <Link to="/find-jobs">Find Job</Link>
           <Link href="#">Applications</Link>
           <Link href="#">News</Link>

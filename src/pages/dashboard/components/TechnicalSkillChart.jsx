@@ -8,8 +8,8 @@ const data = [
 ];
 
 const TechnicalSkillChart = () => (
-  <div className="bg-white rounded-xl shadow p-4 w-full flex flex-col items-center">
-    <h3 className="text-md font-semibold mb-2">Technical Skill</h3>
+  <div className="bg-white rounded-xl shadow p-5 w-full flex flex-col items-center">
+    <h3 className="text-xl font-semibold mb-3">Technical Skill</h3>
     <div className="h-40 w-full flex items-center justify-center">
       <ResponsiveContainer width="100%" height="100%">
         <PieChart>
@@ -31,10 +31,10 @@ const TechnicalSkillChart = () => (
         </PieChart>
       </ResponsiveContainer>
     </div>
-    <div className="flex justify-center gap-4 mt-2 text-xs">
+    <div className="flex justify-center gap-5 mt-3 text-base">
       {data.map((d, idx) => (
-        <span key={d.name} className="flex items-center gap-1">
-          <span className="inline-block w-3 h-3 rounded-full" style={{ background: d.color }}></span>
+        <span key={d.name} className="flex items-center gap-2">
+          <span className="inline-block w-4 h-4 rounded-full" style={{ background: d.color }}></span>
           {d.name}
         </span>
       ))}

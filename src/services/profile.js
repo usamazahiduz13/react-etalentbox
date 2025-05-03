@@ -2,7 +2,7 @@ import axios from "axios";
 import { toast } from "sonner";
 import { store } from '../Redux/store';
 
-const API_BASE_URL = 'http://api.etalentbox.com/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://api.etalentbox.com/api';
 
 // Get auth token from Redux store
 const getAuthHeader = () => {
@@ -13,45 +13,20 @@ const getAuthHeader = () => {
 // Create or update profile
 export const createProfile = async (payload) => {
   try {
-    // Get userId from Redux store instead of payload
     const userId = store.getState().auth.userId;
     
     if (!userId) {
       throw new Error('User not authenticated');
     }
     
-    // Ensure userId is included in the payload
     const profileData = {
       ...payload,
       userId
     };
     
-    // Create FormData for file upload
-    const formData = new FormData();
-    
-    // Add all profile data to FormData
-    Object.keys(profileData).forEach(key => {
-      if (key === 'artifactUrl' && typeof profileData[key] === 'string' && profileData[key].startsWith('data:')) {
-        // Convert base64 to blob for image upload
-        const base64Data = profileData[key].split(',')[1];
-        const byteCharacters = atob(base64Data);
-        const byteArrays = [];
-        
-        for (let i = 0; i < byteCharacters.length; i++) {
-          byteArrays.push(byteCharacters.charCodeAt(i));
-        }
-        
-        const blob = new Blob([new Uint8Array(byteArrays)], { type: 'image/jpeg' });
-        formData.append('artifactUrl', blob, 'profile-image.jpg');
-      } else {
-        formData.append(key, profileData[key]);
-      }
-    });
-
     const response = await axios.post(`${API_BASE_URL}/Profile`, profileData, {
       headers: {
         ...getAuthHeader(),
-        'accept': 'application/json',
         'Content-Type': 'application/json-patch+json'
       }
     });
@@ -66,8 +41,14 @@ export const createProfile = async (payload) => {
 };
 
 // Get profile by userId
-export const getProfileByUserId = async (userId) => {
+export const getProfileByUserId = async () => {
   try {
+    const userId = store.getState().auth.userId;
+    
+    if (!userId) {
+      throw new Error('User not authenticated');
+    }
+    
     const response = await axios.get(`${API_BASE_URL}/Profile/user/${userId}`, {
       headers: getAuthHeader()
     });
@@ -98,10 +79,10 @@ export const updateProfile = async (profileId, payload) => {
 // Add education
 export const addEducation = async (educationData) => {
   try {
-    const response = await axios.post(`${API_BASE_URL}/Education`, educationData, {
+    const response = await axios.post(`${API_BASE_URL}/Education`, [educationData], {
       headers: {
         ...getAuthHeader(),
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json-patch+json'
       }
     });
     toast.success('Education added successfully');
@@ -149,7 +130,7 @@ export const addExperience = async (experienceData) => {
     const response = await axios.post(`${API_BASE_URL}/Experience`, experienceData, {
       headers: {
         ...getAuthHeader(),
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json-patch+json'
       }
     });
     toast.success('Experience added successfully');
@@ -166,7 +147,7 @@ export const updateExperience = async (experienceId, experienceData) => {
     const response = await axios.put(`${API_BASE_URL}/Experience/${experienceId}`, experienceData, {
       headers: {
         ...getAuthHeader(),
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json-patch+json'
       }
     });
     toast.success('Experience updated successfully');

@@ -47,19 +47,19 @@ const arrow = (up) => up ? (
 );
 
 const StatsCards = () => (
-  <div className="bg-white rounded-xl shadow p-2">
-    <div className="grid grid-cols-2 gap-x-2 gap-y-2">
+  <div className="bg-white rounded-xl shadow p-4">
+    <div className="grid grid-cols-2 gap-x-3 gap-y-3">
       {stats.map((stat, idx) => (
-        <div key={stat.label} className="flex flex-col justify-between p-2 relative min-h-[100px]">
+        <div key={stat.label} className="flex flex-col justify-between p-3 relative min-h-[100px]">
           <div className="absolute top-2 right-2">
             <span className={`rounded-lg p-2 ${stat.iconBg} flex items-center justify-center`}>{stat.icon}</span>
           </div>
-          <span className="text-xs text-gray-500 mb-1 font-medium">{stat.label}</span>
+          <span className="text-sm text-gray-500 mb-1 font-medium">{stat.label}</span>
           <div className="flex items-end gap-2 mb-1 mt-2">
             <span className="text-2xl font-bold leading-none">{stat.value}</span>
-            <span className={`flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full ${stat.up ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>{arrow(stat.up)} {stat.change}</span>
+            <span className={`flex items-center gap-1 text-sm font-semibold px-2 py-0.5 rounded-full ${stat.up ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>{arrow(stat.up)} {stat.change}</span>
           </div>
-          <span className="text-[11px] text-gray-400 mt-0.5">{stat.sub}</span>
+          <span className="text-xs text-gray-400 mt-0.5">{stat.sub}</span>
         </div>
       ))}
     </div>

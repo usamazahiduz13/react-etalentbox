@@ -1,28 +1,52 @@
 import React, { useState } from 'react';
-import { useDispatch } from 'react-redux';
-import { addSpeciality } from '../../../../Redux/user-slice';
+import fetchApi from '../../../../utils/axios';
+import { toast } from 'sonner';
+import { useSelector } from 'react-redux';
 
-const SkillModal = ({ isOpen, onClose }) => {
-  const dispatch = useDispatch();
+const SkillModal = ({ isOpen, onClose, skillType, userId, onSuccess }) => {
   const [skill, setSkill] = useState('');
   const [error, setError] = useState('');
+  const { userInfo } = useSelector((state) => state.auth);
+  const api=import.meta.env.VITE_API_URL
 
   const handleChange = (e) => {
     setSkill(e.target.value);
     if (error) setError('');
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
     if (!skill.trim()) {
       setError('Skill name is required');
       return;
     }
-    
-    dispatch(addSpeciality({ name: skill.trim() }));
-    setSkill('');
-    onClose();
+
+    try {
+      const endpoint = skillType === 'soft' ? 'SoftSkill' : 'TechnicalSkill';
+      const payload = skillType === 'soft' 
+        ? { name: skill.trim() }
+        : [{
+            id: 0,
+            name: skill.trim(),
+            experience: 0,
+            userId: userInfo?.userId,
+          }];
+
+      await fetchApi.post(`${api}/${endpoint}`, payload, {
+        headers: {
+          'Content-Type': 'application/json-patch+json'
+        }
+      });
+
+      toast.success(`${skillType === 'soft' ? 'Soft' : 'Technical'} skill added successfully`);
+      setSkill('');
+      onClose();
+      onSuccess();
+    } catch (error) {
+      console.error('Skill add error:', error);
+      toast.error(error.response?.data?.message || 'Failed to add skill');
+    }
   };
 
   if (!isOpen) return null;
@@ -32,7 +56,9 @@ const SkillModal = ({ isOpen, onClose }) => {
       <div className="bg-white rounded-lg shadow-lg w-full max-w-md">
         <div className="p-6">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-xl font-semibold text-gray-800">Add Skill</h3>
+            <h3 className="text-xl font-semibold text-gray-800">
+              Add {skillType === 'soft' ? 'Soft' : 'Technical'} Skill
+            </h3>
             <button
               onClick={onClose}
               className="text-gray-500 hover:text-gray-700"
@@ -45,13 +71,17 @@ const SkillModal = ({ isOpen, onClose }) => {
           
           <form onSubmit={handleSubmit}>
             <div className="mb-4">
-              <label className="block text-gray-700 text-sm font-medium mb-1">Skill Name *</label>
+              <label className="block text-gray-700 text-sm font-medium mb-1">
+                {skillType === 'soft' ? 'Soft' : 'Technical'} Skill Name *
+              </label>
               <input
                 type="text"
                 value={skill}
                 onChange={handleChange}
                 className={`w-full px-3 py-2 border ${error ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent`}
-                placeholder="JavaScript, Project Management, Communication, etc."
+                placeholder={skillType === 'soft' 
+                  ? "Communication, Leadership, Teamwork, etc."
+                  : "JavaScript, Python, React, etc."}
               />
               {error && <p className="text-red-500 text-xs mt-1">{error}</p>}
             </div>

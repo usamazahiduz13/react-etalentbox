@@ -8,6 +8,7 @@ import { FaRegEdit } from "react-icons/fa";
 import { FaChevronDown } from "react-icons/fa";
 import { useDispatch } from "react-redux";
 import { updateProfileData } from "../../../../Redux/user-slice";
+import { useSelector } from "react-redux";
 
 // Initialize PDF.js worker for Vite
 pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
@@ -16,30 +17,43 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
 ).href;
 
 const CompanyInfoStep = ({ formData, onInputChange }) => {
+  
+  const { isLogin, userInfo } = useSelector(state => state.auth);
   const dispatch = useDispatch();
   const [profileLevelDesp, setProfileLevelDesp] = useState("{Description}");
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
-  const [avatar, setAvatar] = useState(AvatarImg);
+  const [avatar, setAvatar] = useState(formData.artifactUrl || AvatarImg);
+  const [isParsing, setIsParsing] = useState(false);
 
-  console.log(formData);
-  const handleFileUpload = async (file) => {
-    console.log("File upload started:", file.name, file.type);
+  const handleFileUpload = async (file, fileType) => {
+    console.log("File upload started:", file.name, file.type, fileType);
 
-    if (file.type === "application/pdf") {
-      console.log("Processing PDF file");
-      await extractTextFromPDF(file);
-    } else if (
-      file.type ===
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-    ) {
-      console.log("Processing DOCX file");
-      await extractTextFromDocx(file);
-    } else {
-      console.log("Unsupported file type:", file.type);
+    // Store the file in Redux based on type
+    if (fileType === "resume") {
+      dispatch(updateProfileData({ resume: file }));
+    } else if (fileType === "linkedin") {
+      dispatch(updateProfileData({ linkedinProfile: file }));
+    }
+
+    // Parse CV text from resume files
+    if (fileType === "resume") {
+      if (file.type === "application/pdf") {
+        console.log("Processing PDF file");
+        await extractTextFromPDF(file);
+      } else if (
+        file.type ===
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      ) {
+        console.log("Processing DOCX file");
+        await extractTextFromDocx(file);
+      } else {
+        console.log("Unsupported file type:", file.type);
+      }
     }
   };
 
   const extractTextFromPDF = async (file) => {
+    setIsParsing(true);
     const reader = new FileReader();
     reader.onload = async () => {
       try {
@@ -68,6 +82,7 @@ const CompanyInfoStep = ({ formData, onInputChange }) => {
   };
 
   const extractTextFromDocx = async (file) => {
+    setIsParsing(true);
     const reader = new FileReader();
     reader.onload = async () => {
       try {
@@ -78,6 +93,8 @@ const CompanyInfoStep = ({ formData, onInputChange }) => {
         parseCVText(result.value);
       } catch (error) {
         console.error("Error processing DOCX:", error);
+      } finally {
+        setIsParsing(false);
       }
     };
 
@@ -227,11 +244,11 @@ const CompanyInfoStep = ({ formData, onInputChange }) => {
       <div className="flex flex-col md:flex-row gap-6 mb-8">
         <DropzoneFileUploader
           label="Upload your Resume"
-          onFileUpload={handleFileUpload}
+          onFileUpload={(file) => handleFileUpload(file, "resume")}
         />
         <DropzoneFileUploader
           label="Upload your LinkedIn Profile"
-          onFileUpload={handleFileUpload}
+          onFileUpload={(file) => handleFileUpload(file, "linkedin")}
         />
       </div>
 
@@ -306,6 +323,7 @@ const CompanyInfoStep = ({ formData, onInputChange }) => {
                 value={formData.firstName || ""}
                 onChange={onInputChange}
                 className="mt-1 block w-full rounded-lg py-2.5 px-4 border border-[#D8D8D8] shadow-sm focus:border-blue-500 outline-blue-500"
+                placeholder="Enter your first name"
                 required
               />
             </div>
@@ -321,6 +339,7 @@ const CompanyInfoStep = ({ formData, onInputChange }) => {
                 value={formData.dateOfBirth || ""}
                 onChange={onInputChange}
                 className="mt-1 block w-full rounded-lg py-2.5 px-4 border border-[#D8D8D8] shadow-sm focus:border-blue-500 outline-blue-500"
+                placeholder="Enter your date of birth"
                 required
               />
             </div>
@@ -336,6 +355,7 @@ const CompanyInfoStep = ({ formData, onInputChange }) => {
                 value={formData.language || ""}
                 onChange={onInputChange}
                 className="mt-1 block w-full rounded-lg py-2.5 px-4 border border-[#D8D8D8] shadow-sm focus:border-blue-500 outline-blue-500"
+                placeholder="Enter your language"
                 required
               />
             </div>
@@ -351,6 +371,7 @@ const CompanyInfoStep = ({ formData, onInputChange }) => {
                 value={formData.passportNumber || ""}
                 onChange={onInputChange}
                 className="mt-1 block w-full rounded-lg py-2.5 px-4 border border-[#D8D8D8] shadow-sm focus:border-blue-500 outline-blue-500"
+                placeholder="Enter your passport number"
                 required
               />
             </div>
@@ -366,7 +387,8 @@ const CompanyInfoStep = ({ formData, onInputChange }) => {
                 id="lastName"
                 name="lastName"
                 value={formData.lastName || ""}
-                onChange={onInputChange}
+                onChange={onInputChange} 
+                placeholder="Enter your last name"
                 className="mt-1 block w-full rounded-lg py-2.5 px-4 border border-[#D8D8D8] shadow-sm focus:border-blue-500 outline-blue-500"
                 required
               />
@@ -439,6 +461,7 @@ const CompanyInfoStep = ({ formData, onInputChange }) => {
                 value={formData.idNumber || ""}
                 onChange={onInputChange}
                 className="mt-1 block w-full rounded-lg py-2.5 px-4 border border-[#D8D8D8] shadow-sm focus:border-blue-500 outline-blue-500"
+                placeholder="Enter your id number"
                 required
               />
             </div>

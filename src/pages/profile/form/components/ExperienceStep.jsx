@@ -1,18 +1,23 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { removeExperience } from '../../../../Redux/user-slice';
+import { addExperience, removeExperience, updateProfileData } from '../../../../Redux/user-slice';
 import { FaPlus, FaEdit, FaTrash } from 'react-icons/fa';
 import { format } from 'date-fns';
 import ExperienceModal from './ExperienceModal';
+import axios from 'axios'; 
+import { toast } from 'sonner';
 
 const ExperienceStep = () => {
   const dispatch = useDispatch();
+  const { userInfo } = useSelector(state => state.auth);
   const { experiences } = useSelector(state => state.user);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentExperience, setCurrentExperience] = useState(null);
   const [editIndex, setEditIndex] = useState(-1);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleAddClick = () => {
+  const handleAddClick = (e) => {
+    e.preventDefault();
     setCurrentExperience(null);
     setEditIndex(-1);
     setIsModalOpen(true);
@@ -38,6 +43,59 @@ const ExperienceStep = () => {
       return dateString;
     }
   };
+
+  // Fetch experiences from the API
+  const fetchExperiences = async () => {
+    if (!userInfo?._id) {
+      toast.error("User information not found. Please log in again.");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}/Experience/${userInfo._id}`,
+        {
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json-patch+json',
+            'Authorization': `Bearer ${userInfo.token}`
+          }
+        }
+      );
+      
+      // Add each experience to Redux
+      if (response.data && Array.isArray(response.data)) {
+        // Clear existing experiences first
+        dispatch(updateProfileData({ experiences: [] }));
+        
+        // Add each experience to the Redux store
+        response.data.forEach(experience => {
+          dispatch(addExperience(experience));
+        });
+        
+        toast.success("Experiences loaded successfully");
+      }
+    } catch (error) {
+      console.error("Error fetching experiences:", error);
+      toast.error(error.response?.data?.message || "Failed to load experiences");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Fetch experiences when component mounts
+  useEffect(() => {
+    fetchExperiences();
+  }, [userInfo]);
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

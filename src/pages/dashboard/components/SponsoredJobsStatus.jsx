@@ -10,7 +10,7 @@ const data = [
 const SponsoredJobsStatus = () => (
   <div className="bg-white rounded-xl shadow p-4 w-full">
     <div className="flex justify-between items-center mb-2">
-      <h3 className="text-md font-semibold">Sponsored Jobs Status</h3>
+      <h3 className="text-xl font-semibold">Sponsored Jobs Status</h3>
       <span className="text-xs text-gray-400">Submitted Application</span>
     </div>
     <div className="h-40">

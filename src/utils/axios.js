@@ -1,19 +1,23 @@
 import axios from "axios";
-import { store } from "../Redux/store";
 
-// Create axios instance with base URL
-export const fetchApi = axios.create({
-  baseURL: 'http://api.etalentbox.com/api', 
-  headers: { "Content-Type": "application/json" },
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://api.etalentbox.com/api';
+
+// Create axios instance
+const fetchApi = axios.create({
+  baseURL: API_BASE_URL,
+  headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json'
+  },
+  withCredentials: true
 });
 
-// Add request interceptor for authentication
+// Add a request interceptor
 fetchApi.interceptors.request.use(
   (config) => {
-    // Get token from Redux store
-    const token = store.getState().auth.token;
+    const token = localStorage.getItem('token');
     if (token) {
-      config.headers["Authorization"] = `Bearer ${token}`;
+      config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
@@ -22,24 +26,6 @@ fetchApi.interceptors.request.use(
   }
 );
 
-// Add response interceptor to handle auth errors
-fetchApi.interceptors.response.use(
-  (response) => {
-    return response;
-  },
-  (error) => {
-    // Handle 401 Unauthorized errors
-    if (error.response && error.response.status === 401) {
-      // Dispatch logout action if needed
-      // store.dispatch(logout());
-      // Redirect to login page
-      window.location.href = '/auth/login';
-    }
-    return Promise.reject(error);
-  }
-);
-
-// Export default for convenience
 export default fetchApi;
 
 

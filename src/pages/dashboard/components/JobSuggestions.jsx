@@ -25,15 +25,15 @@ const JobSuggestions = () => (
       <div key={job.title} className="bg-white rounded-xl shadow p-4 flex flex-col">
         <div className="flex items-center gap-2 mb-1">
           {job.tags.map(tag => (
-            <span key={tag} className="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded-full font-medium">{tag}</span>
+            <span key={tag} className="bg-gray-100 text-gray-600 text-sm px-2.5 py-1 rounded-full font-medium">{tag}</span>
           ))}
         </div>
-        <div className="font-semibold text-sm mb-0.5">{job.title}</div>
-        <div className="text-xs text-gray-500 mb-1">{job.company} • {job.location}</div>
-        <div className="text-xs text-gray-400 mb-2">{job.description}</div>
+        <div className="font-semibold text-base mb-1">{job.title}</div>
+        <div className="text-sm text-gray-500 mb-1.5">{job.company} • {job.location}</div>
+        <div className="text-sm text-gray-400 mb-2.5">{job.description}</div>
         <div className="flex items-center justify-between mt-auto">
-          <span className="text-blue-600 font-bold text-sm">{job.salary}</span>
-          <button className="bg-blue-500 text-white text-xs px-3 py-1 rounded font-medium hover:bg-blue-600">Apply Now</button>
+          <span className="text-blue-600 font-bold text-base">{job.salary}</span>
+          <button className="primary-button text-white text-sm px-4 py-1.5 rounded-md font-medium ">Apply Now</button>
         </div>
       </div>
     ))}

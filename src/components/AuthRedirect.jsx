@@ -4,23 +4,9 @@ import { useNavigate } from 'react-router-dom'
 
 // This component handles redirects after login based on authentication state
 const AuthRedirect = () => {
-  const { isAuthenticated, isNewUser } = useSelector(state => state.auth)
+  const { isLogin, userInfo } = useSelector(state => state.auth)
   const navigate = useNavigate()
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      // If user is new, send to profile creation page
-      if (isNewUser) {
-        navigate('/dashboard/add-details')
-      } else {
-        // If user is existing, send to dashboard
-        navigate('/dashboard')
-      }
-    } else {
-      // If not authenticated, redirect to login
-      navigate('/login')
-    }
-  }, [isAuthenticated, isNewUser, navigate])
 
   // This is just a loading component while redirect happens
   return (

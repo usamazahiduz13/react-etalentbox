@@ -53,38 +53,38 @@ const statusColors = {
 };
 
 const ApplicationsTable = () => (
-  <div className="bg-white rounded-xl shadow p-4 w-full mt-2">
-    <div className="flex justify-between items-center mb-2">
-      <h3 className="text-lg font-semibold">Applications</h3>
+  <div className="bg-white rounded-xl shadow p-5 w-full mt-2">
+    <div className="flex justify-between items-center mb-3">
+      <h3 className="text-xl font-semibold">Applications</h3>
       <div className='flex items-center gap-2'>
-      <input type="text" placeholder="Search employee, department, etc" className="rounded-md bg-[#F3F3F3] px-2 py-2 text-base w-56" />
-      <button className="bg-[#14589C] text-white text-xs px-2 py-2 rounded-md ml-2">
+      <input type="text" placeholder="Search employee, department, etc" className="rounded-md bg-[#F3F3F3] px-3 py-2 text-base w-56" />
+      <button className="bg-[#14589C] text-white px-2 py-2 rounded-md ml-2">
         <FaFilter className='text-white w-5 h-5' />
       </button>
       </div>
     </div>
     <div className="overflow-x-auto">
-      <table className="min-w-full text-[14px]">
+      <table className="min-w-full text-base">
         <thead>
           <tr className="text-gray-500 border-b">
-            <th className="py-2  text-left font-medium">Position</th>
-            <th className="py-2  text-center font-medium">Company</th>
-            <th className="py-2  text-center font-medium">Employment Type</th>
-            <th className="py-2  text-center font-medium">Work Model</th>
-            <th className="py-2 text-center font-medium">Status</th>
+            <th className="py-3 text-left font-medium">Position</th>
+            <th className="py-3 text-center font-medium">Company</th>
+            <th className="py-3 text-center font-medium">Employment Type</th>
+            <th className="py-3 text-center font-medium">Work Model</th>
+            <th className="py-3 text-center font-medium">Status</th>
           </tr>
         </thead>
         <tbody>
           {applications.map((app, idx) => (
-            <tr key={idx} className="border-b last:border-0 ">
-              <td className="py-2 font-medium text-center">{app.position}</td>
-              <td className="py-2 text-center">{app.company}</td>
-              <td className="py-2 flex justify-center items-center flex-col">
-                <span className={`bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium`}>{app.employment}</span>
+            <tr key={idx} className="border-b last:border-0">
+              <td className="py-3 font-medium text-center">{app.position}</td>
+              <td className="py-3 text-center">{app.company}</td>
+              <td className="py-3 flex justify-center items-center flex-col">
+                <span className={`bg-blue-100 text-blue-700 px-3 py-1.5 rounded-full font-medium text-sm`}>{app.employment}</span>
               </td>
-              <td className="py-2 text-center">{app.workModel}</td>
-              <td className="py-2 text-center">
-                <span className={`px-2 py-1 rounded-full font-medium ${statusColors[app.status]}`}>{app.status}</span>
+              <td className="py-3 text-center">{app.workModel}</td>
+              <td className="py-3 text-center">
+                <span className={`px-3 py-1.5 rounded-full font-medium text-sm ${statusColors[app.status]}`}>{app.status}</span>
               </td>
             </tr>
           ))}

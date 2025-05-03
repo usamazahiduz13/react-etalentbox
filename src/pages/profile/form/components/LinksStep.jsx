@@ -1,6 +1,6 @@
 import React from 'react'
 
-const LinksStep = ({ formData, onInputChange }) => {
+const LinksStep = ({ formData, onInputChange, errors = {} }) => {
     return (
         <>
             <div className='flex justify-between items-center p-2'>
@@ -14,7 +14,7 @@ const LinksStep = ({ formData, onInputChange }) => {
             <div className='space-y-4 mt-4'>
                 <div>
                     <label htmlFor="facebook" className="block text-sm font-medium text-gray-700">
-                        Facebook <span className="text-red-500">*</span>
+                        Facebook
                     </label>
                     <input
                         type="text"
@@ -22,8 +22,7 @@ const LinksStep = ({ formData, onInputChange }) => {
                         name="facebook"
                         value={formData.facebook || ''}
                         onChange={onInputChange}
-                       className="mt-1 block w-full rounded-lg py-2 px-4 border border-[#D8D8D8] shadow-sm focus:border-blue-500 outline-blue-500"
-                        required
+                        className="mt-1 block w-full rounded-lg py-2 px-4 border border-[#D8D8D8] shadow-sm focus:border-blue-500 outline-blue-500"
                     />
                 </div>
 
@@ -37,14 +36,19 @@ const LinksStep = ({ formData, onInputChange }) => {
                         name="linkedin"
                         value={formData.linkedin || ''}
                         onChange={onInputChange}
-                        className="mt-1 block w-full rounded-lg py-2 px-4 border border-[#D8D8D8] shadow-sm focus:border-blue-500 outline-blue-500"
+                        className={`mt-1 block w-full rounded-lg py-2 px-4 border ${
+                            errors.linkedin ? 'border-red-500' : 'border-[#D8D8D8]'
+                        } shadow-sm focus:border-blue-500 outline-blue-500`}
                         required
                     />
+                    {errors.linkedin && (
+                        <p className="mt-1 text-sm text-red-500">{errors.linkedin}</p>
+                    )}
                 </div>
 
                 <div>
                     <label htmlFor="twitter" className="block text-sm font-medium text-gray-700">
-                        Twitter <span className="text-red-500">*</span>
+                        Twitter
                     </label>
                     <input
                         type="text"
@@ -53,13 +57,12 @@ const LinksStep = ({ formData, onInputChange }) => {
                         value={formData.twitter || ''}
                         onChange={onInputChange}
                         className="mt-1 block w-full rounded-lg py-2 px-4 border border-[#D8D8D8] shadow-sm focus:border-blue-500 outline-blue-500"
-                        required
                     />
                 </div>
 
                 <div>
                     <label htmlFor="instagram" className="block text-sm font-medium text-gray-700">
-                        Instagram <span className="text-red-500">*</span>
+                        Instagram
                     </label>
                     <input
                         type="text"
@@ -68,11 +71,8 @@ const LinksStep = ({ formData, onInputChange }) => {
                         value={formData.instagram || ''}
                         onChange={onInputChange}
                         className="mt-1 block w-full rounded-lg py-2 px-4 border border-[#D8D8D8] shadow-sm focus:border-blue-500 outline-blue-500"
-                        required
                     />
                 </div>
-
-               
             </div>
         </>
     )

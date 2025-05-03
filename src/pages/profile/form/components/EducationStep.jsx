@@ -1,18 +1,23 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { removeEducation } from '../../../../Redux/user-slice';
+import { removeEducation,  } from '../../../../Redux/user-slice';
 import { FaPlus, FaEdit, FaTrash } from 'react-icons/fa';
 import { format } from 'date-fns';
 import EducationModal from './EducationModal';
+import { toast } from 'sonner';
+import fetchApi from '../../../../utils/axios';
 
 const EducationStep = () => {
   const dispatch = useDispatch();
+  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://api.etalentbox.com/api';
   const { education } = useSelector(state => state.user);
+  const { isLogin, userInfo } = useSelector(state => state.auth);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentEducation, setCurrentEducation] = useState(null);
   const [editIndex, setEditIndex] = useState(-1);
 
-  const handleAddClick = () => {
+  const handleAddClick = (e) => {
+    e.preventDefault();
     setCurrentEducation(null);
     setEditIndex(-1);
     setIsModalOpen(true);
@@ -38,6 +43,33 @@ const EducationStep = () => {
       return dateString;
     }
   };
+console.log(userInfo)
+  const getEducation = async () => {
+    try {
+      if (!userInfo?.userId) {
+        console.error('User ID not found');
+        return;
+      }
+
+      const response = await fetchApi.get(`Education?userId=${userInfo.userId}`, {
+        headers: {
+          Authorization: `Bearer ${userInfo.token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.data) {
+       // dispatch(setEducation(response.data));
+      }
+    } catch (error) {
+      console.error('Education fetch error:', error);
+      toast.error(error.response?.data?.message || 'Failed to fetch education data');
+    }
+  };
+
+  useEffect(() => {
+    getEducation();
+  }, []);
 
   return (
     <div className="space-y-6">

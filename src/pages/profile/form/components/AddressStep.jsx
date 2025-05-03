@@ -2,14 +2,18 @@ import React from 'react';
 
 import { countries } from "../../utilis/helpers";
 
-const AddressStep = ({ formData, onInputChange }) => {
+const AddressStep = ({ formData, onInputChange, errors = {} }) => {
     return (
-        <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-md">
+        <div className="md:px-8 px-4 py-6">
             <h2 className='text-2xl font-bold mb-6 text-gray-800'>
-                Address Step
+                Address Information
             </h2>
 
-            <div className='space-y-4'>
+            <div className='bg-blue-50 p-4 mb-6 text-blue-700 rounded-lg'>
+                Please fill all required fields to continue
+            </div>
+
+            <div className='space-y-6'>
                 {/* Street Field */}
                 <div className='space-y-1'>
                     <label htmlFor='street' className='block text-sm font-medium text-gray-700'>
@@ -21,15 +25,20 @@ const AddressStep = ({ formData, onInputChange }) => {
                         name='street'
                         value={formData.street || ''}
                         onChange={onInputChange}
-                        className='w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
+                        className={`mt-1 block w-full rounded-lg py-2.5 px-4 border ${
+                            errors.street ? 'border-red-500' : 'border-[#D8D8D8]'
+                        } shadow-sm focus:border-blue-500 outline-blue-500`}
                         required
                     />
+                    {errors.street && (
+                        <p className="mt-1 text-sm text-red-500">{errors.street}</p>
+                    )}
                 </div>
 
                 {/* Flat/Suit Field */}
                 <div className='space-y-1'>
                     <label htmlFor='flat' className='block text-sm font-medium text-gray-700'>
-                        Flat/Suit No. <span className='text-red-500'>*</span>
+                        Flat/Suite No. <span className='text-red-500'>*</span>
                     </label>
                     <input
                         type='text'
@@ -37,43 +46,50 @@ const AddressStep = ({ formData, onInputChange }) => {
                         name='flat'
                         value={formData.flat || ''}
                         onChange={onInputChange}
-                        className='w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
+                        className={`mt-1 block w-full rounded-lg py-2.5 px-4 border ${
+                            errors.flat ? 'border-red-500' : 'border-[#D8D8D8]'
+                        } shadow-sm focus:border-blue-500 outline-blue-500`}
                         required
                     />
+                    {errors.flat && (
+                        <p className="mt-1 text-sm text-red-500">{errors.flat}</p>
+                    )}
                 </div>
 
                 {/* City and State Row */}
-                <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
                     {/* City Field */}
                     <div className='space-y-1'>
                         <label htmlFor='city' className='block text-sm font-medium text-gray-700'>
                             City <span className='text-red-500'>*</span>
                         </label>
                         <select
-              id="city"
-              name="city"
-              value={formData.city?.label || ""}
-              onChange={(e) => {
-                const selectedCountry = countries.find(
-                  (country) => country.label === e.target.value
-                ).label;
-                onInputChange({
-                  target: {
-                    name: "city",
-                    value: selectedCountry || null,
-                  },
-                });
-              }}
-              className="mt-1 block w-full rounded-lg py-2 px-4 border border-[#D8D8D8] shadow-sm focus:border-blue-500 outline-blue-500"
-              required
-            >
-              <option value="">Select Country</option>
-              {countries.map((country) => (
-                <option key={country.label} value={country.label}>
-                  {country.label}
-                </option>
-              ))}
-            </select>
+                            id="city"
+                            name="city"
+                            value={formData.city || ""}
+                            onChange={(e) => {
+                                onInputChange({
+                                    target: {
+                                        name: "city",
+                                        value: e.target.value,
+                                    },
+                                });
+                            }}
+                            className={`mt-1 block w-full rounded-lg py-2.5 px-4 border ${
+                                errors.city ? 'border-red-500' : 'border-[#D8D8D8]'
+                            } shadow-sm focus:border-blue-500 outline-blue-500`}
+                            required
+                        >
+                            <option value="">Select City</option>
+                            {countries.map((country) => (
+                                <option key={country.label} value={country.label}>
+                                    {country.label}
+                                </option>
+                            ))}
+                        </select>
+                        {errors.city && (
+                            <p className="mt-1 text-sm text-red-500">{errors.city}</p>
+                        )}
                     </div>
 
                     {/* State Field */}
@@ -82,30 +98,32 @@ const AddressStep = ({ formData, onInputChange }) => {
                             State <span className='text-red-500'>*</span>
                         </label>
                         <select
-              id="workCountry"
-              name="workCountry"
-              value={formData.state.label || ""}
-              onChange={(e) => {
-                const selectedCountry = countries.find(
-                  (country) => country.label === e.target.value
-                ).label;
-                onInputChange({
-                  target: {
-                    name: "state",
-                    value: selectedCountry || null,
-                  },
-                });
-              }}
-              className="mt-1 block w-full rounded-lg py-2 px-4 border border-[#D8D8D8] shadow-sm focus:border-blue-500 outline-blue-500"
-              required
-            >
-              <option value="">Select State</option>
-              {countries.map((country) => (
-                <option key={country.label} value={country.label}>
-                  {country.label}
-                </option>
-              ))}
-            </select>
+                            id="state"
+                            name="state"
+                            value={formData.state || ""}
+                            onChange={(e) => {
+                                onInputChange({
+                                    target: {
+                                        name: "state",
+                                        value: e.target.value,
+                                    },
+                                });
+                            }}
+                            className={`mt-1 block w-full rounded-lg py-2.5 px-4 border ${
+                                errors.state ? 'border-red-500' : 'border-[#D8D8D8]'
+                            } shadow-sm focus:border-blue-500 outline-blue-500`}
+                            required
+                        >
+                            <option value="">Select State</option>
+                            {countries.map((country) => (
+                                <option key={country.label} value={country.label}>
+                                    {country.label}
+                                </option>
+                            ))}
+                        </select>
+                        {errors.state && (
+                            <p className="mt-1 text-sm text-red-500">{errors.state}</p>
+                        )}
                     </div>
                 </div>
 
@@ -120,8 +138,28 @@ const AddressStep = ({ formData, onInputChange }) => {
                         name='zipcode'
                         value={formData.zipcode || ''}
                         onChange={onInputChange}
-                        className='w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
+                        className={`mt-1 block w-full rounded-lg py-2.5 px-4 border ${
+                            errors.zipcode ? 'border-red-500' : 'border-[#D8D8D8]'
+                        } shadow-sm focus:border-blue-500 outline-blue-500`}
                         required
+                    />
+                    {errors.zipcode && (
+                        <p className="mt-1 text-sm text-red-500">{errors.zipcode}</p>
+                    )}
+                </div>
+
+                {/* Phone Number Field */}
+                <div className='space-y-1'>
+                    <label htmlFor='phoneNumber' className='block text-sm font-medium text-gray-700'>
+                        Phone Number
+                    </label>
+                    <input
+                        type='tel'
+                        id='phoneNumber'
+                        name='phoneNumber'
+                        value={formData.phoneNumber || ''}
+                        onChange={onInputChange}
+                        className="mt-1 block w-full rounded-lg py-2.5 px-4 border border-[#D8D8D8] shadow-sm focus:border-blue-500 outline-blue-500"
                     />
                 </div>
             </div>

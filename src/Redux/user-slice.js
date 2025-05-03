@@ -2,14 +2,22 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 import { toast } from 'sonner';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://api.etalentbox.com/api';
 
 // Async thunks for profile operations
 export const fetchUserProfile = createAsyncThunk(
   'user/fetchProfile',
   async (userId, { rejectWithValue }) => {
     try {
-      const response = await axios.get(`${API_BASE_URL}Profile/${userId}`);
+      // Get token from localStorage
+      const token = localStorage.getItem("token");
+      
+      const response = await axios.get(`${API_BASE_URL}/Profile/${userId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
       return response.data;
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to fetch profile');
@@ -22,10 +30,22 @@ export const createUserProfile = createAsyncThunk(
   'user/createProfile',
   async (profileData, { rejectWithValue }) => {
     try {
-      const response = await axios.post(`${API_BASE_URL}Profile`, profileData);
+      console.log('Sending profile data to API:', JSON.stringify(profileData));
+      
+      // Get token from localStorage
+      const token = localStorage.getItem("token");
+      
+      const response = await axios.post(`${API_BASE_URL}/Profile`, profileData, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      console.log('API response:', response.data);
       toast.success('Profile created successfully');
       return response.data;
     } catch (error) {
+      console.error('API error details:', error.response?.data);
       toast.error(error.response?.data?.message || 'Failed to create profile');
       return rejectWithValue(error.response?.data || error.message);
     }
@@ -36,7 +56,15 @@ export const updateUserProfile = createAsyncThunk(
   'user/updateProfile',
   async (profileData, { rejectWithValue }) => {
     try {
-      const response = await axios.put(`${API_BASE_URL}Profile/${profileData.id}`, profileData);
+      // Get token from localStorage
+      const token = localStorage.getItem("token");
+      
+      const response = await axios.put(`${API_BASE_URL}/Profile/${profileData.id}`, profileData, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
       toast.success('Profile updated successfully');
       return response.data;
     } catch (error) {
@@ -86,11 +114,7 @@ const initialState = {
   education: [],
   specialities: [],
   availabilities: [],
-  overview: {
-    id: null,
-    overviewDetail: '',
-    userId: null
-  },
+  overview:null,
   loading: false,
   error: null,
   success: false,

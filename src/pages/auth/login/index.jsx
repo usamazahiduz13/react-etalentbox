@@ -1,5 +1,5 @@
 import React from "react";
-import LoginImg from "../../../assets/imgs/auth/sign-img.png";
+import  Lottie  from 'lottie-react';
 import MicrosoftImg from "../../../assets/imgs/auth/microsoft.png";
 import GoogleImg from "../../../assets/imgs/auth/google.png";
 import { Link, useNavigate } from "react-router-dom";
@@ -8,10 +8,14 @@ import { toast } from "sonner";
 import { RxEyeOpen, RxEyeClosed } from "react-icons/rx";
 import { resetPasswordEmail } from "../../../services/auth";
 import { useDispatch, useSelector } from "react-redux";
-import { login } from "../../../Redux/auth-slice";
+import { login } from "../../../services/auth";
 import logo from '../../../assets/logo.svg'
+import { toggleAuth } from "../../../Redux/auth-slice";
+import loginAnimation from '../../../assets/animation/login.json'
 
 const LoginPage = () => {
+ 
+  const { isLogin, userInfo } = useSelector(state => state.auth);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -21,31 +25,32 @@ const LoginPage = () => {
   const [isSendLink, setIsSendLink] = useState(false);
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState("");
   const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
   
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { loading, error, isAuthenticated, isNewUser } = useSelector(state => state.auth);
-
-  // Redirect if already authenticated
-  React.useEffect(() => {
-    if (isAuthenticated) {
-      if (isNewUser) {
-        navigate('/dashboard/add-details');
-      } else {
-        navigate('/dashboard');
-      }
-    }
-  }, [isAuthenticated, isNewUser, navigate]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    setLoading(true);
     
     try {
-      await dispatch(login(formData)).unwrap();
-      // Navigation will be handled by the useEffect above
+      const response = await login(formData);
+      dispatch(toggleAuth({ 
+        isLogin: true, 
+        userInfo: {
+          ...response,
+          userId: response.userId,
+          token: response.token
+        }
+      }));
+      navigate('/dashboard');
     } catch (err) {
-      // Error handling is done in the auth slice
       console.error('Login error:', err);
+      toast.error(err.message || 'Login failed');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -69,11 +74,9 @@ const LoginPage = () => {
     <div className="container mx-auto my-16 px-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div className="hidden md:flex justify-center items-center">
-          <img
-            src={LoginImg}
-            className="max-w-[500px] w-full"
-            alt="Login illustration"
-          />
+          <div className="max-w-[500px] w-full">
+          <Lottie animationData={loginAnimation} loop={true}  />
+          </div>
         </div>
         <div className="max-w-md mx-auto w-full bg-white rounded-[16px] py-8 md:px-8  sm:px-4  px-2 shadow-2xl">
           <div className="flex flex-col space-y-8 w-full">
@@ -89,11 +92,7 @@ const LoginPage = () => {
               </p>
             </div>
 
-            {error && (
-              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-                {error}
-              </div>
-            )}
+           
 
             <form className="space-y-6">
               <div className="space-y-4">

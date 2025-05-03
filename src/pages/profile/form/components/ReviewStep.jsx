@@ -1,9 +1,10 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
 import { format } from 'date-fns';
+import AvatarImg from "../../../../assets/imgs/avatar-1.jpg";
 
 const ReviewStep = () => {
-  const { profile, experiences, education, specialities, overview } = useSelector(state => state.user);
+  const { profile, experiences, education, specialities } = useSelector(state => state.user);
 
   // Format date or return empty string if null
   const formatDate = (date) => {
@@ -16,9 +17,27 @@ const ReviewStep = () => {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="md:px-8 px-4 py-6 space-y-8">
+      <div className="bg-blue-50 p-4 mb-6 text-blue-700 rounded-lg">
+        <p className="font-medium">Review your information carefully before submitting</p>
+        <p className="text-sm mt-1">Once you click "Save Profile", your profile will be created.</p>
+      </div>
+      
       <h2 className="text-2xl font-semibold text-gray-800">Review Your Profile</h2>
-      <p className="text-gray-600">Please review your information before submitting</p>
+
+      {/* Profile Picture */}
+      <div className="flex justify-center mb-6">
+        <div className="text-center">
+          <div className="relative inline-block">
+            <img
+              src={profile.artifactUrl || AvatarImg}
+              alt="Profile"
+              className="w-24 h-24 rounded-full object-cover mx-auto border-2 border-gray-200"
+            />
+          </div>
+          <p className="mt-2 text-sm text-gray-500">Profile Picture</p>
+        </div>
+      </div>
 
       {/* Personal Information */}
       <div className="bg-gray-50 p-4 rounded-lg">
@@ -53,12 +72,23 @@ const ReviewStep = () => {
             <p className="font-medium">{profile.passportNumber || 'Not provided'}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-500">Willing to Relocate</p>
-            <p className="font-medium">{profile.willingToRelocate ? 'Yes' : 'No'}</p>
+            <p className="text-sm text-gray-500">ID Number</p>
+            <p className="font-medium">{profile.idNumber || 'Not provided'}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Resume & LinkedIn Profile */}
+      <div className="bg-gray-50 p-4 rounded-lg">
+        <h3 className="text-lg font-medium text-gray-800 mb-3">Documents & Profiles</h3>
+        <div className="grid md:grid-cols-2 gap-4">
+          <div>
+            <p className="text-sm text-gray-500">Resume</p>
+            <p className="font-medium">{profile.resume ? 'Uploaded' : 'Not uploaded'}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-500">Willing to Travel</p>
-            <p className="font-medium">{profile.willingToTravel ? 'Yes' : 'No'}</p>
+            <p className="text-sm text-gray-500">LinkedIn Profile</p>
+            <p className="font-medium">{profile.linkedinProfile ? 'Uploaded' : 'Not uploaded'}</p>
           </div>
         </div>
       </div>
@@ -68,12 +98,12 @@ const ReviewStep = () => {
         <h3 className="text-lg font-medium text-gray-800 mb-3">Address Information</h3>
         <div className="grid md:grid-cols-2 gap-4">
           <div>
-            <p className="text-sm text-gray-500">Address Line 1</p>
-            <p className="font-medium">{profile.address1 || 'Not provided'}</p>
+            <p className="text-sm text-gray-500">Street</p>
+            <p className="font-medium">{profile.street || 'Not provided'}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-500">Address Line 2</p>
-            <p className="font-medium">{profile.address2 || 'Not provided'}</p>
+            <p className="text-sm text-gray-500">Flat/Suite</p>
+            <p className="font-medium">{profile.flat || 'Not provided'}</p>
           </div>
           <div>
             <p className="text-sm text-gray-500">City</p>
@@ -85,7 +115,7 @@ const ReviewStep = () => {
           </div>
           <div>
             <p className="text-sm text-gray-500">Postal Code</p>
-            <p className="font-medium">{profile.postalCode || 'Not provided'}</p>
+            <p className="font-medium">{profile.zipcode || 'Not provided'}</p>
           </div>
           <div>
             <p className="text-sm text-gray-500">Phone Number</p>
@@ -122,7 +152,7 @@ const ReviewStep = () => {
             {experiences.map((exp, index) => (
               <div key={index} className="border-l-4 border-primary pl-4">
                 <p className="font-semibold">{exp.title || 'Position'}</p>
-                <p className="text-sm">{exp.company || 'Company'} - {exp.city}, {exp.country}</p>
+                <p className="text-sm">{exp.company || 'Company'} {(exp.city || exp.country) ? `- ${[exp.city, exp.country].filter(Boolean).join(', ')}` : ''}</p>
                 <p className="text-xs text-gray-500">
                   {formatDate(exp.startDate)} - {exp.currentlyWorking ? 'Present' : formatDate(exp.endDate)}
                 </p>
@@ -151,14 +181,38 @@ const ReviewStep = () => {
         )}
       </div>
 
-      {/* Overview */}
+      {/* Social Links */}
       <div className="bg-gray-50 p-4 rounded-lg">
-        <h3 className="text-lg font-medium text-gray-800 mb-3">Professional Overview</h3>
-        {overview && overview.overviewDetail ? (
-          <p className="text-gray-700">{overview.overviewDetail}</p>
-        ) : (
-          <p className="text-gray-500 italic">No overview provided</p>
-        )}
+        <h3 className="text-lg font-medium text-gray-800 mb-3">Social Links</h3>
+        <div className="grid md:grid-cols-2 gap-4">
+          {profile.linkedin && (
+            <div>
+              <p className="text-sm text-gray-500">LinkedIn</p>
+              <p className="font-medium truncate">{profile.linkedin}</p>
+            </div>
+          )}
+          {profile.facebook && (
+            <div>
+              <p className="text-sm text-gray-500">Facebook</p>
+              <p className="font-medium truncate">{profile.facebook}</p>
+            </div>
+          )}
+          {profile.twitter && (
+            <div>
+              <p className="text-sm text-gray-500">Twitter</p>
+              <p className="font-medium truncate">{profile.twitter}</p>
+            </div>
+          )}
+          {profile.instagram && (
+            <div>
+              <p className="text-sm text-gray-500">Instagram</p>
+              <p className="font-medium truncate">{profile.instagram}</p>
+            </div>
+          )}
+          {!profile.linkedin && !profile.facebook && !profile.twitter && !profile.instagram && (
+            <p className="text-gray-500 italic">No social links provided</p>
+          )}
+        </div>
       </div>
     </div>
   );

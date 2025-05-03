@@ -9,28 +9,20 @@ import DashboardPage from './pages/dashboard'
 import Profile from './pages/profile/index'
 import Jobs from './pages/jobs/Index'
 import NotFound from './pages/NotFound'
-import ProtectedRoute from './components/ProtectedRoute'
 import AuthRedirect from './components/AuthRedirect'
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Public routes */}
         <Route path='/' element={<LandingPage/>}/>
         <Route path='/auth/login' element={<LoginPage/>}/>
         <Route path='/auth/register' element={<RegisterPage/>}/>
         <Route path='/auth/redirect' element={<AuthRedirect/>}/>
-        
-        {/* Protected routes */}
-        <Route element={<ProtectedRoute />}>
-          <Route path='/dashboard' element={<DashboardPage/>}/>
-          <Route path='/dashboard/add-details' element={<Profile/>}/>
-          <Route path='/find-jobs' element={<Jobs/>}/>
-          <Route path='/profile' element={<Profile/>}/>
-        </Route>
-        
-        {/* 404 route */}
+        <Route path='/dashboard' element={<DashboardPage/>}/>
+        <Route path='/dashboard/add-details' element={<Profile/>}/>
+        <Route path='/find-jobs' element={<Jobs/>}/>
+        <Route path='/profile' element={<Profile/>}/>
         <Route path='*' element={<NotFound/>}/>
       </Routes>
       <Toaster position='top-right'/>

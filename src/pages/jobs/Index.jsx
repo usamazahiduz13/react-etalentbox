@@ -4,9 +4,9 @@ import JobListingsPage from './components/JobsListing'
 
 const Index = () => {
   return (
-    <div>
-       <Header/>
-       <JobListingsPage/>
+    <div className="min-h-screen bg-gray-50">
+      <Header/>
+      <JobListingsPage/>
     </div>
   )
 }

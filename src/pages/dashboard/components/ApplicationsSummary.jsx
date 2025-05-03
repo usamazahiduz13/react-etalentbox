@@ -12,7 +12,7 @@ const total = data.reduce((sum, d) => sum + d.value, 0);
 const ApplicationsSummary = () => (
   <div className="bg-white rounded-xl shadow p-4 w-full flex flex-col">
     <div className="flex justify-between items-center mb-2">
-      <h3 className="text-[14px] font-semibold">Applications Summary</h3>
+      <h3 className="text-xl font-semibold">Applications Summary</h3>
       <button className="bg-[#14589C] text-white text-[14px] whitespace-nowrap px-2 py-1 rounded font-medium flex flex-nowrap items-center gap-2 cursor-pointer">Work Model <FaChevronDown className='w-4 h-4' /></button>
     </div>
     <div className="flex items-center justify-center relative h-40">

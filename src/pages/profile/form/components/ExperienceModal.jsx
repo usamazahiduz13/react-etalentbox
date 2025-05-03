@@ -1,9 +1,13 @@
 import React, { useState } from 'react';
-import { useDispatch } from 'react-redux';
-import { addExperience, updateExperience } from '../../../../Redux/user-slice';
+import { useDispatch, useSelector } from 'react-redux';
+import axios from 'axios';
+import { toast } from 'sonner';
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://api.etalentbox.com/api';
 
 const ExperienceModal = ({ isOpen, onClose, initialData = null, editIndex = -1 }) => {
   const dispatch = useDispatch();
+  const { isLogin, userInfo } = useSelector(state => state.auth);
   const [formData, setFormData] = useState(
     initialData || {
       title: '',
@@ -15,11 +19,14 @@ const ExperienceModal = ({ isOpen, onClose, initialData = null, editIndex = -1 }
       startDate: '',
       endDate: '',
       currentlyWorking: false,
-      description: ''
+      description: '',
+      userId: userInfo?.userId
     }
   );
   
   const [errors, setErrors] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
+  console.log(userInfo)
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -50,18 +57,37 @@ const ExperienceModal = ({ isOpen, onClose, initialData = null, editIndex = -1 }
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    e.stopPropagation();
     
     if (!validate()) return;
     
-    if (editIndex >= 0) {
-      dispatch(updateExperience({ index: editIndex, data: formData }));
-    } else {
-      dispatch(addExperience(formData));
-    }
+    const experienceData = {
+      ...formData,
+      userId: userInfo.userId
+    };
     
-    onClose();
+    setIsLoading(true);
+    try {
+      const response = await axios.post(
+        `${API_BASE_URL}Experience`,
+      [experienceData], // Try without array first
+        {
+          headers: {
+            Authorization: `Bearer ${userInfo?.token}`,
+            'Content-Type': 'application/json-patch+json'
+          }
+        }
+      );
+      
+      toast.success(editIndex >= 0 ? 'Experience updated successfully' : 'Experience added successfully');
+      onClose();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to save experience');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -77,6 +103,7 @@ const ExperienceModal = ({ isOpen, onClose, initialData = null, editIndex = -1 }
             <button
               onClick={onClose}
               className="text-gray-500 hover:text-gray-700"
+              disabled={isLoading}
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
@@ -84,7 +111,7 @@ const ExperienceModal = ({ isOpen, onClose, initialData = null, editIndex = -1 }
             </button>
           </div>
           
-          <form onSubmit={handleSubmit}>
+          <form >
             <div className="mb-4">
               <label className="block text-gray-700 text-sm font-medium mb-1">Job Title *</label>
               <input
@@ -223,14 +250,26 @@ const ExperienceModal = ({ isOpen, onClose, initialData = null, editIndex = -1 }
                 type="button"
                 onClick={onClose}
                 className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
+                disabled={isLoading}
               >
                 Cancel
               </button>
               <button
-                type="submit"
-                className="px-4 py-2 primary-button"
+                onClick={handleSubmit}
+                className="px-4 py-2 primary-button flex items-center gap-2"
+                disabled={isLoading}
               >
-                {editIndex >= 0 ? 'Update' : 'Add'} Experience
+                {isLoading ? (
+                  <>
+                    <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    {editIndex >= 0 ? 'Updating...' : 'Adding...'}
+                  </>
+                ) : (
+                  editIndex >= 0 ? 'Update' : 'Add'
+                )}
               </button>
             </div>
           </form>

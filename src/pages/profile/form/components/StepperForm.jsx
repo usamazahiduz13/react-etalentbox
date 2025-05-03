@@ -10,26 +10,35 @@ import LinksStep from './LinksStep'
 import SkillsStep from './SkillsStep'
 import EducationStep from './EducationStep'
 import ReviewStep from './ReviewStep'
-import { createUserProfile, updateUserProfile, fetchUserProfile, updateProfileData, setCurrentStep, nextStep, prevStep } from '../../../../Redux/user-slice'
+import { createUserProfile, updateProfileData, setCurrentStep, nextStep, prevStep } from '../../../../Redux/user-slice'
 import { stepsValidations } from '../../utilis/formUtilis'
-import { createProfile } from '../../../../services/profile'
 
 const StepperForm = () => {
     const dispatch = useDispatch()
     const navigate = useNavigate()
     const { profile, loading: profileLoading, currentStep } = useSelector(state => state.user)
-    const { userId, isAuthenticated, isNewUser } = useSelector(state => state.auth)
+    const { userInfo, isLogin } = useSelector(state => state.auth)
     const [formErrors, setFormErrors] = useState({})
     
     // Redirect to login if not authenticated
     useEffect(() => {
-        if (!isAuthenticated) {
+        if (!isLogin) {
             toast.error('Please login to create a profile')
-            navigate('/login')
+            //navigate('/auth/login')
         }
-    }, [isAuthenticated, navigate])
+    }, [isLogin, navigate])
 
-    // Validate current step
+    // Set userId in profile data when component mounts
+    useEffect(() => {
+        if (userInfo?.userId) {
+            dispatch(updateProfileData({ 
+                userId: userInfo.userId,
+                id: 0
+            }))
+        }
+    }, [userInfo, dispatch])
+
+    // Validate current step    
     const validateStep = (step) => {
         if (!stepsValidations[step]) return true
 
@@ -52,31 +61,60 @@ const StepperForm = () => {
     // Handle next button click
     const handleNext = async () => {
         if (validateStep(currentStep)) {
-            if (currentStep === 0) {
-                // Make API call after first step validation
+            // Only make API call on final step (Review page)
+            if (currentStep === 6) {
                 try {
-                    if (!userId) {
+                    if (!userInfo?.userId) {
                         toast.error('User ID not found. Please login again.')
-                        navigate('/login')
+                        navigate('/auth/login')
                         return
                     }
 
-                    // Make API call to create/update profile
-                    await createProfile(profile)
+                    // Update profile with userId from userInfo before submission
+                    dispatch(updateProfileData({ 
+                        userId: userInfo.userId,
+                        id: 0,
+                        isUpdate: false,
+                        isPortfolioPrivate: false,
+                        user: null
+                    }))
                     
-                    toast.success('Profile saved successfully')
-                    dispatch(nextStep())
+                    // Dispatch create profile action with complete profile data
+                    await dispatch(createUserProfile({
+                        ...profile,
+                        userId: userInfo.userId,
+                        id: 0,
+                        // Make sure these fields match the API schema exactly
+                        workAuthoriztion: profile.workAuthoriztion || "", // Note: API might expect "workAuthorization" instead
+                        isUpdate: false,
+                        isPortfolioPrivate: false,
+                        status: profile.status || "",
+                        specialities: [],
+                        experiences: [],
+                        availabilities: [],
+                        overview: {
+                            id: 0,
+                            overviewDetail: "",
+                            userId: userInfo.userId
+                        }
+                    })).unwrap()
+                    
+                    toast.success('Profile created successfully')
+                    // Navigate to profile view or dashboard after successful creation
+                    navigate('/profile')
                 } catch (error) {
                     toast.error('Failed to save profile')
                     console.error('Profile submission error:', error)
                     
                     // Redirect to login if user is not authenticated
                     if (error.message === 'User not authenticated') {
-                        navigate('/login')
+                        navigate('/auth/login')
                     }
                 }
             } else {
+                // Just move to the next step, store data in Redux
                 dispatch(nextStep())
+                toast.success('Step completed successfully')
             }
         } else {
             toast.error('Please fill all required fields')
@@ -119,94 +157,84 @@ const StepperForm = () => {
     }
 
     return (
-        <form onSubmit={handleNext}>
-            <div className="w-full flex md:flex-row flex-col items-start justify-center gap-6 h-full">
-                <div className="md:w-[35%] w-full h-full">
-                    <StepperFormSteps currentStep={currentStep} setStep={(step) => dispatch(setCurrentStep(step))} />
+        <form onSubmit={(e) => { e.preventDefault(); handleNext(); }} className="h-full">
+            <div className="w-full flex md:flex-row flex-col items-start justify-center h-full">
+                <div className="md:w-[25%] w-full h-full md:border-r border-gray-200">
+                    <StepperFormSteps step={currentStep} setStep={(step) => dispatch(setCurrentStep(step))} />
                 </div>
 
-                <div className="md:w-[65%] w-full bg-white p-6 ">
-                    {currentStep === 0 && 
-                        <CompanyInfoStep 
-                            formData={profile} 
-                            onInputChange={handleInputChange}
-                            onCheckboxChange={handleCheckboxChange}
-                            onDateChange={handleDateChange}
-                            errors={formErrors}
-                        />
-                    }
-                    
-                    {currentStep === 1 && 
-                        <AddressStep 
-                            formData={profile} 
-                            onInputChange={handleInputChange}
-                            errors={formErrors}
-                        />
-                    }
-                    
-                    {currentStep === 2 && 
-                        <EducationStep 
-                            formData={profile}
-                            errors={formErrors}
-                        />
-                    }
-                    
-                    {currentStep === 3 && 
-                        <ExperienceStep 
-                            formData={profile}
-                            errors={formErrors}
-                        />
-                    }
-                    
-                    {currentStep === 4 && 
-                        <SkillsStep 
-                            formData={profile}
-                            errors={formErrors}
-                        />
-                    }
-                    
-                    {currentStep === 5 && 
-                        <LinksStep 
-                            formData={profile} 
-                            onInputChange={handleInputChange}
-                            errors={formErrors}
-                        />
-                    }
-                    
-                    {currentStep === 6 && 
-                        <ReviewStep 
-                            formData={profile}
-                        />
-                    }
-
-                    <div className="flex justify-between mt-8 mb-4 md:px-8 px-4">
+                <div className="md:w-[75%] w-full bg-white p-4 md:p-6 flex flex-col justify-between h-full">
+                    <div className="flex-grow">
+                        {currentStep === 0 && 
+                            <CompanyInfoStep 
+                                formData={profile} 
+                                onInputChange={handleInputChange}
+                                onCheckboxChange={handleCheckboxChange}
+                                onDateChange={handleDateChange}
+                                errors={formErrors}
+                            />
+                        }
+                        
+                        {currentStep === 1 && 
+                            <AddressStep 
+                                formData={profile} 
+                                onInputChange={handleInputChange}
+                                errors={formErrors}
+                            />
+                        }
+                        
+                        {currentStep === 2 && 
+                            <EducationStep 
+                                formData={profile}
+                                errors={formErrors}
+                            />
+                        }
+                        
+                        {currentStep === 3 && 
+                            <ExperienceStep 
+                                formData={profile}
+                                errors={formErrors}
+                            />
+                        }
+                        
+                        {currentStep === 4 && 
+                            <SkillsStep 
+                                formData={profile}
+                                errors={formErrors}
+                            />
+                        }
+                        
+                        {currentStep === 5 && 
+                            <LinksStep 
+                                formData={profile} 
+                                onInputChange={handleInputChange}
+                                errors={formErrors}
+                            />
+                        }
+                        
+                        {currentStep === 6 && 
+                            <ReviewStep 
+                                formData={profile}
+                            />
+                        }
+                    </div>
+                    <div className="flex justify-between mt-6 mb-2 w-full">
                         <button 
                             type="button"
-                            className="px-6 py-2 border border-primary text-primary rounded-[16px] hover:bg-gray-50 transition-all disabled:opacity-50"
+                            className="px-4 md:px-6 py-2 border border-primary text-primary rounded-[16px] hover:bg-gray-50 transition-all disabled:opacity-50"
                             onClick={handleBack}
                             disabled={currentStep === 0 || profileLoading}
                         >
                             Back
                         </button>
                         
-                        {currentStep < 6 ? (
-                            <button 
-                                type="button"
-                                className="primary-button"
-                                onClick={handleNext}
-                                disabled={profileLoading}
-                            >
-                                {profileLoading ? 'Loading...' : 'Next'}
-                            </button>
-                        ) : (
-                            <button 
-                                type="submit"
-                                className="primary-button"
-                                disabled={profileLoading}
-                            >
-                                {profileLoading ? 'Saving...' : 'Save Profile'}
-                            </button>
-                        )}
+                        <button 
+                            type="submit"
+                            className="primary-button px-4 md:px-6 py-2"
+                            disabled={profileLoading}
+                        >
+                            {profileLoading ? 'Loading...' : currentStep === 6 ? 'Save Profile' : 'Next'}
+                        </button>
                     </div>
                 </div>
             </div>
