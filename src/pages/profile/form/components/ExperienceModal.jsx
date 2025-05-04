@@ -58,8 +58,7 @@ const ExperienceModal = ({ isOpen, onClose, initialData = null, editIndex = -1 }
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    e.stopPropagation();
+    if (e) e.preventDefault();
     
     if (!validate()) return;
     
@@ -71,7 +70,7 @@ const ExperienceModal = ({ isOpen, onClose, initialData = null, editIndex = -1 }
     setIsLoading(true);
     try {
       const response = await axios.post(
-        `${API_BASE_URL}Experience`,
+        `${API_BASE_URL}/Experience`,
       [experienceData], // Try without array first
         {
           headers: {
@@ -255,6 +254,7 @@ const ExperienceModal = ({ isOpen, onClose, initialData = null, editIndex = -1 }
                 Cancel
               </button>
               <button
+                type="button"
                 onClick={handleSubmit}
                 className="px-4 py-2 primary-button flex items-center gap-2"
                 disabled={isLoading}

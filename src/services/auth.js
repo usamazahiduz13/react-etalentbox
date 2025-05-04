@@ -1,5 +1,7 @@
 // api.js
 import axios from "axios";
+import fetchApi from "../utils/axios";
+import { toast } from "sonner";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://api.etalentbox.com/api';
 
@@ -7,22 +9,9 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://api.etalentbox.com/
 export const login = async (payload) => {
   try {
     const response = await axios.post(`${API_BASE_URL}/Account/Logon`, payload);
-    const { baseModel, user } = response.data || {};
-
-    // Store token in localStorage
-    if (baseModel?.data) {
-      localStorage.setItem("token", baseModel.data);
-      localStorage.setItem("userId", user);
-    }
-
-    // Return the formatted response
-    return {
-      userId: user,
-      token: baseModel?.data,
-      isNewUser: false,
-    };
+   return response
   } catch (error) {
-    throw error.response?.data || { message: error.message };
+    toast.error(error.response?.data?.message || 'Failed to login');
   }
 };
 
@@ -42,26 +31,26 @@ export const clearStoredAuthData = () => {
 // Register function
 export const register = async (payload) => {
   try {
-    const response = await axios.post(
-      `${API_BASE_URL}/Account/CandidateRegister`,
+    const response = await fetchApi.post(
+      `/Account/CandidateRegister`,
       payload
     );
-    return response.data;
+    return response;
   } catch (error) {
-    throw error.response?.data || { message: error.message };
+    toast.error(error.response?.data?.message || 'Failed to register');
   }
 };
 
 // Reset password email
 export const resetPasswordEmail = async (email) => {
   try {
-    const response = await axios.post(
-      `${API_BASE_URL}/Account/ForgotPassword`,
+    const response = await fetchApi.post(
+      `/Account/ForgotPassword`,
       { email }
     );
-    return response.data;
+    return response;
   } catch (error) {
-    throw error.response?.data || { message: error.message };
+    toast.error(error.response?.data?.message || 'Failed to reset password');
   }
 };
 

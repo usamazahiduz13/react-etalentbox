@@ -37,15 +37,31 @@ const LoginPage = () => {
     
     try {
       const response = await login(formData);
+      if(response.data.success){
+        const { baseModel, user } = response.data || {};
+
+        if (baseModel?.data) {
+          localStorage.setItem("token", baseModel.data);
+          localStorage.setItem("userId", user);
+        }
+    
+        const data= {
+          userId: user,
+          token: baseModel?.data,
+          isNewUser: false,
+        };
       dispatch(toggleAuth({ 
         isLogin: true, 
         userInfo: {
           ...response,
-          userId: response.userId,
-          token: response.token
+          userId: data.userId,
+          token: data.token
         }
       }));
-      navigate('/dashboard');
+      navigate('/dashboard'); 
+    }else{
+      toast.error(response.data.message || 'Login failed');
+    }
     } catch (err) {
       console.error('Login error:', err);
       toast.error(err.message || 'Login failed');
@@ -60,9 +76,14 @@ const LoginPage = () => {
 
     try {
       const response = await resetPasswordEmail(forgotPasswordEmail);
-      toast.success(response.message);
-      setShowForgotPasswordModal(false);
-      setForgotPasswordEmail("");
+        if(response.data.success){
+          toast.success(response.data.message);
+          setShowForgotPasswordModal(false);
+          setForgotPasswordEmail("");
+        }else{
+          toast.error(response.data.message || 'Failed to send reset link');
+        }
+     
     } catch (err) {
       toast.error(err.message || "Failed to send reset link");
     } finally {

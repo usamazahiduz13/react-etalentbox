@@ -1,12 +1,16 @@
 import React, { useState } from 'react';
 import fetchApi from '../../../../utils/axios';
 import { toast } from 'sonner';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
+import { addTechnicalSkill, addSoftSkill } from '../../../../Redux/user-slice';
 
 const SkillModal = ({ isOpen, onClose, skillType, userId, onSuccess }) => {
   const [skill, setSkill] = useState('');
+  const [experience, setExperience] = useState('beginner');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const { userInfo } = useSelector((state) => state.auth);
+  const dispatch = useDispatch();
   const api=import.meta.env.VITE_API_URL
 
   const handleChange = (e) => {
@@ -14,8 +18,21 @@ const SkillModal = ({ isOpen, onClose, skillType, userId, onSuccess }) => {
     if (error) setError('');
   };
 
+  const handleExperienceChange = (e) => {
+    setExperience(e.target.value);
+  };
+
+  const getExperienceValue = (level) => {
+    switch (level) {
+      case 'beginner': return 1;
+      case 'experienced': return 2;
+      case 'professional': return 3;
+      default: return 1;
+    }
+  };
+
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault(); // Ensure we prevent the default form submission
     
     if (!skill.trim()) {
       setError('Skill name is required');
@@ -23,29 +40,58 @@ const SkillModal = ({ isOpen, onClose, skillType, userId, onSuccess }) => {
     }
 
     try {
+      setLoading(true);
       const endpoint = skillType === 'soft' ? 'SoftSkill' : 'TechnicalSkill';
-      const payload = skillType === 'soft' 
-        ? { name: skill.trim() }
-        : [{
-            id: 0,
-            name: skill.trim(),
-            experience: 0,
-            userId: userInfo?.userId,
-          }];
+      
+      // Create skill payload
+      const payload = [{
+        id: 0,
+        name: skill.trim(),
+        experience: getExperienceValue(experience),
+        userId: userInfo?.userId,
+        likeCount: 0,
+        rating: 0,
+        technicalSkillLike: []
+      }];
 
-      await fetchApi.post(`${api}/${endpoint}`, payload, {
-        headers: {
-          'Content-Type': 'application/json-patch+json'
+      // Send API request to add skill
+      const response = await fetchApi.post(`/${endpoint}`, payload);
+      
+      // Only update Redux if the API call was successful
+      if (response.data && response.data.success) {
+        // Get the newly created skill from the response
+        const createdSkills = response.data.data || [];
+        
+        // Add each created skill to Redux
+        if (createdSkills.length > 0) {
+          createdSkills.forEach(newSkill => {
+            if (skillType === 'soft') {
+              dispatch(addSoftSkill(newSkill));
+            } else {
+              dispatch(addTechnicalSkill(newSkill));
+            }
+          });
+          
+          toast.success(`${skillType === 'soft' ? 'Soft' : 'Technical'} skill added successfully`);
+          
+          // Reset form and close modal
+          setSkill('');
+          setExperience('beginner');
+          onClose();
+          
+          // Refresh skills list
+          if (onSuccess) onSuccess();
+        } else {
+          toast.warning('Skill was created but no data was returned');
         }
-      });
-
-      toast.success(`${skillType === 'soft' ? 'Soft' : 'Technical'} skill added successfully`);
-      setSkill('');
-      onClose();
-      onSuccess();
+      } else {
+        toast.error('Failed to add skill: ' + (response.data?.message || 'Unknown error'));
+      }
     } catch (error) {
       console.error('Skill add error:', error);
       toast.error(error.response?.data?.message || 'Failed to add skill');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -82,8 +128,25 @@ const SkillModal = ({ isOpen, onClose, skillType, userId, onSuccess }) => {
                 placeholder={skillType === 'soft' 
                   ? "Communication, Leadership, Teamwork, etc."
                   : "JavaScript, Python, React, etc."}
+                disabled={loading}
               />
               {error && <p className="text-red-500 text-xs mt-1">{error}</p>}
+            </div>
+
+            <div className="mb-4">
+              <label className="block text-gray-700 text-sm font-medium mb-1">
+                Experience Level
+              </label>
+              <select
+                value={experience}
+                onChange={handleExperienceChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                disabled={loading}
+              >
+                <option value="beginner">Beginner</option>
+                <option value="experienced">Experienced</option>
+                <option value="professional">Professional</option>
+              </select>
             </div>
             
             <div className="flex justify-end gap-3 mt-6">
@@ -91,14 +154,17 @@ const SkillModal = ({ isOpen, onClose, skillType, userId, onSuccess }) => {
                 type="button"
                 onClick={onClose}
                 className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
+                disabled={loading}
               >
                 Cancel
               </button>
               <button
-                type="submit"
+                type="button"
+                onClick={handleSubmit}
                 className="px-4 py-2 primary-button"
+                disabled={loading}
               >
-                Add Skill
+                {loading ? 'Adding...' : 'Add Skill'}
               </button>
             </div>
           </form>

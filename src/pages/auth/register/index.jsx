@@ -99,9 +99,13 @@ const RegisterPage = () => {
     
     try {
       const response = await register(formData);
-      console.log('Registration successful:', response);
-      toast.success('Registration successful! Please login to continue.');
+      if(response.data.success){
+      
       navigate('/auth/login');
+      toast.success('Registration successful! Please login to continue.');
+      }else{
+        toast.error(response.data.message || 'Registration failed');
+      }
     } catch (err) {
       setError(err.message || 'Registration failed');
       toast.error(err.message || 'Registration failed');

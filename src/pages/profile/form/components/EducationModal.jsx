@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { addEducation } from '../../../../Redux/user-slice';
-import { addEducation as addEducationAPI } from '../../../../services/profile';
+import { addEducation, updateEducation } from '../../../../Redux/user-slice';
+import { addEducation as addEducationAPI, updateEducation as updateEducationAPI } from '../../../../services/profile';
 import { toast } from 'sonner';
 
 const EducationModal = ({ isOpen, onClose, initialData = null, editIndex = -1 }) => {
@@ -23,6 +23,21 @@ const EducationModal = ({ isOpen, onClose, initialData = null, editIndex = -1 })
       userId: userInfo?.userId
     }
   );
+  
+  // Update formData when initialData changes (important for edit mode)
+  useEffect(() => {
+    if (initialData) {
+      // Format dates for input fields
+      const startDate = initialData.startDate ? new Date(initialData.startDate).toISOString().split('T')[0] : '';
+      const endDate = initialData.endDate ? new Date(initialData.endDate).toISOString().split('T')[0] : '';
+      
+      setFormData({
+        ...initialData,
+        startDate,
+        endDate
+      });
+    }
+  }, [initialData]);
   
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
@@ -57,25 +72,31 @@ const EducationModal = ({ isOpen, onClose, initialData = null, editIndex = -1 })
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    e.stopPropagation();
+    if (e) e.preventDefault();
     
     if (!validate()) return;
     
     const educationData = {
       ...formData,
       userId: userInfo?.userId,
-      id: 0, // Required by API
+      id: formData.id || 0, // Use existing ID for updates
       startDate: formData.startDate ? new Date(formData.startDate).toISOString() : null,
-      endDate: formData.endDate ? new Date(formData.endDate).toISOString() : null,
-      currentlyEnrolled: formData.currentlyEnrolled
+      endDate: formData.endDate ? new Date(formData.endDate).toISOString() : null
     };
     
     setIsLoading(true);
     try {
-      const response = await addEducationAPI(educationData);
-      dispatch(addEducation(response));
-      toast.success('Education added successfully');
+      if (editIndex >= 0) {
+        // Update existing education
+        const response = await updateEducationAPI(educationData.id, educationData);
+        dispatch(updateEducation({ index: editIndex, data: response.data || response }));
+        toast.success('Education updated successfully');
+      } else {
+        // Add new education
+        const response = await addEducationAPI(educationData);
+        dispatch(addEducation(response.data || response));
+        toast.success('Education added successfully');
+      }
       onClose();
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to save education');
@@ -268,6 +289,7 @@ const EducationModal = ({ isOpen, onClose, initialData = null, editIndex = -1 })
                 Cancel
               </button>
               <button
+                type="button"
                 onClick={handleSubmit}
                 className="px-4 py-2 primary-button flex items-center gap-2"
                 disabled={isLoading}

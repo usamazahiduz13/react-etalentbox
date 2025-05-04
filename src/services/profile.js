@@ -1,8 +1,10 @@
 import axios from "axios";
 import { toast } from "sonner";
 import { store } from '../Redux/store';
+import fetchApi from "../utils/axios";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://api.etalentbox.com/api';
+
 
 // Get auth token from Redux store
 const getAuthHeader = () => {
@@ -79,12 +81,7 @@ export const updateProfile = async (profileId, payload) => {
 // Add education
 export const addEducation = async (educationData) => {
   try {
-    const response = await axios.post(`${API_BASE_URL}/Education`, [educationData], {
-      headers: {
-        ...getAuthHeader(),
-        'Content-Type': 'application/json-patch+json'
-      }
-    });
+    const response = await fetchApi.post(`${API_BASE_URL}/Education`, [educationData]);
     toast.success('Education added successfully');
     return response.data;
   } catch (error) {
@@ -96,9 +93,8 @@ export const addEducation = async (educationData) => {
 // Update education
 export const updateEducation = async (educationId, educationData) => {
   try {
-    const response = await axios.put(`${API_BASE_URL}/Education/${educationId}`, educationData, {
+    const response = await fetchApi.put(`${API_BASE_URL}/Education/${educationId}`, educationData, {
       headers: {
-        ...getAuthHeader(),
         'Content-Type': 'application/json'
       }
     });
@@ -111,13 +107,18 @@ export const updateEducation = async (educationId, educationData) => {
 };
 
 // Delete education
-export const deleteEducation = async (educationId) => {
+export const deleteEducation = async (education) => {
   try {
-    const response = await axios.delete(`${API_BASE_URL}/Education/${educationId}`, {
-      headers: getAuthHeader()
+    const response = await fetchApi.delete(`${API_BASE_URL}/Education`, {
+      headers: {
+        'Content-Type': 'application/json-patch+json'
+      },
+      data: education
     });
-    toast.success('Education deleted successfully');
-    return response.data;
+    if(response.data.success){
+      toast.success('Education deleted successfully');
+      return response.data;
+    }
   } catch (error) {
     toast.error(error.response?.data?.message || error.message);
     throw error;
@@ -127,13 +128,8 @@ export const deleteEducation = async (educationId) => {
 // Add experience
 export const addExperience = async (experienceData) => {
   try {
-    const response = await axios.post(`${API_BASE_URL}/Experience`, experienceData, {
-      headers: {
-        ...getAuthHeader(),
-        'Content-Type': 'application/json-patch+json'
-      }
-    });
-    toast.success('Experience added successfully');
+    const response = await fetchApi.post(`${API_BASE_URL}/Experience`, experienceData);
+   
     return response.data;
   } catch (error) {
     toast.error(error.response?.data?.message || error.message);
@@ -159,13 +155,18 @@ export const updateExperience = async (experienceId, experienceData) => {
 };
 
 // Delete experience
-export const deleteExperience = async (experienceId) => {
+export const deleteExperience = async (experience) => {
   try {
-    const response = await axios.delete(`${API_BASE_URL}/Experience/${experienceId}`, {
-      headers: getAuthHeader()
+    const response = await fetchApi.delete(`${API_BASE_URL}/Experience`, {
+      headers: {
+        'Content-Type': 'application/json-patch+json'
+      },
+      data: experience
     });
-    toast.success('Experience deleted successfully');
-    return response.data;
+    if(response.data.success){
+      toast.success('Experience deleted successfully');
+      return response.data;
+    }
   } catch (error) {
     toast.error(error.response?.data?.message || error.message);
     throw error;

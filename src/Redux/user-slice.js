@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 import { toast } from 'sonner';
+import fetchApi from '../utils/axios';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://api.etalentbox.com/api';
 
@@ -32,15 +33,9 @@ export const createUserProfile = createAsyncThunk(
     try {
       console.log('Sending profile data to API:', JSON.stringify(profileData));
       
-      // Get token from localStorage
-      const token = localStorage.getItem("token");
       
-      const response = await axios.post(`${API_BASE_URL}/Profile`, profileData, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
+      
+      const response = await fetchApi.post(`/Profile`, profileData);
       console.log('API response:', response.data);
       toast.success('Profile created successfully');
       return response.data;
@@ -113,6 +108,8 @@ const initialState = {
   experiences: [],
   education: [],
   specialities: [],
+  technicalSkills: [],
+  softSkills: [],
   availabilities: [],
   overview:null,
   loading: false,
@@ -157,12 +154,39 @@ const userSlice = createSlice({
       state.education = state.education.filter((_, index) => index !== action.payload);
     },
     
+    // Set education data from API
+    setEducation: (state, action) => {
+      state.education = action.payload;
+    },
+    
     // Skills section
     addSpeciality: (state, action) => {
       state.specialities.push(action.payload);
     },
     removeSpeciality: (state, action) => {
       state.specialities = state.specialities.filter(skill => skill.id !== action.payload);
+    },
+    
+    // Technical Skills
+    setTechnicalSkills: (state, action) => {
+      state.technicalSkills = action.payload;
+    },
+    addTechnicalSkill: (state, action) => {
+      state.technicalSkills.push(action.payload);
+    },
+    removeTechnicalSkill: (state, action) => {
+      state.technicalSkills = state.technicalSkills.filter(skill => skill.id !== action.payload);
+    },
+    
+    // Soft Skills
+    setSoftSkills: (state, action) => {
+      state.softSkills = action.payload;
+    },
+    addSoftSkill: (state, action) => {
+      state.softSkills.push(action.payload);
+    },
+    removeSoftSkill: (state, action) => {
+      state.softSkills = state.softSkills.filter(skill => skill.id !== action.payload);
     },
     
     // Update overview
@@ -250,8 +274,15 @@ export const {
   addEducation,
   updateEducation,
   removeEducation,
+  setEducation,
   addSpeciality,
   removeSpeciality,
+  setTechnicalSkills,
+  addTechnicalSkill,
+  removeTechnicalSkill,
+  setSoftSkills,
+  addSoftSkill,
+  removeSoftSkill,
   updateOverview,
   setCurrentStep,
   nextStep,

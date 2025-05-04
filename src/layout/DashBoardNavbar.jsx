@@ -8,6 +8,7 @@ import { useDispatch, useSelector } from "react-redux";
 import logo from '../assets/logo.svg'
 import { clearStoredAuthData } from '../services/auth';
 import { toggleAuth } from '../Redux/auth-slice';
+import { resetProfile } from '../Redux/user-slice';
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -36,6 +37,7 @@ const Header = () => {
     try {
       clearStoredAuthData();
       dispatch(toggleAuth({ isLogin: false, userInfo: null }));
+      dispatch(resetProfile());
       navigate('/auth/login');
     } catch (error) {
       console.error('Logout failed:', error);
@@ -62,7 +64,9 @@ const Header = () => {
             <span>|</span>
             <span>FR</span>
           </div>
-          <IoMdSettings className="w-5 h-5 cursor-pointer" />
+          <Link to="/settings">
+            <IoMdSettings className="w-5 h-5 cursor-pointer" />
+          </Link>
           <BiSolidMessageSquareDots className="w-5 h-5 cursor-pointer" />
           <FaBell className="w-5 h-5 cursor-pointer" />
           
@@ -149,7 +153,9 @@ const Header = () => {
             <span>FR</span>
           </div>
           <div className="flex space-x-4 mt-2">
-            <IoMdSettings className="w-5 h-5" />
+            <Link to="/settings">
+              <IoMdSettings className="w-5 h-5" />
+            </Link>
             <BiSolidMessageSquareDots className="w-5 h-5" />
             <FaBell className="w-5 h-5" />
             <div className="w-8 h-8 bg-gray-400 rounded-full" />

@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { addExperience, removeExperience, updateProfileData } from '../../../../Redux/user-slice';
+import { addExperience, updateProfileData, removeExperience} from '../../../../Redux/user-slice';
 import { FaPlus, FaEdit, FaTrash } from 'react-icons/fa';
 import { format } from 'date-fns';
 import ExperienceModal from './ExperienceModal';
-import axios from 'axios'; 
 import { toast } from 'sonner';
+import fetchApi from '../../../../utils/axios';
+import { deleteExperience } from '../../../../services/profile';
 
 const ExperienceStep = () => {
   const dispatch = useDispatch();
@@ -15,6 +16,7 @@ const ExperienceStep = () => {
   const [currentExperience, setCurrentExperience] = useState(null);
   const [editIndex, setEditIndex] = useState(-1);
   const [isLoading, setIsLoading] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   const handleAddClick = (e) => {
     e.preventDefault();
@@ -29,11 +31,18 @@ const ExperienceStep = () => {
     setIsModalOpen(true);
   };
 
-  const handleRemoveClick = (index) => {
+  const handleRemoveClick = async (exp, index) => {
     if (window.confirm('Are you sure you want to remove this experience entry?')) {
-      dispatch(removeExperience(index));
+      if (exp) {
+        const response=await deleteExperience(exp);
+        if(response.data.success){
+          toast.success('Experience deleted successfully');
+          dispatch(removeExperience(index));
+        }
+      } 
     }
   };
+
 
   const formatDate = (dateString) => {
     if (!dateString) return '';
@@ -46,35 +55,28 @@ const ExperienceStep = () => {
 
   // Fetch experiences from the API
   const fetchExperiences = async () => {
-    if (!userInfo?._id) {
+    if (!userInfo?.userId) {
       toast.error("User information not found. Please log in again.");
       return;
     }
 
     setIsLoading(true);
     try {
-      const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/Experience/${userInfo._id}`,
-        {
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json-patch+json',
-            'Authorization': `Bearer ${userInfo.token}`
-          }
-        }
-      );
+      const response = await fetchApi.get(`/Experience?userId=${userInfo.userId}`);
       
-      // Add each experience to Redux
-      if (response.data && Array.isArray(response.data)) {
+      // Handle the new response format
+      if (response.data && response.data.success && Array.isArray(response.data.data)) {
         // Clear existing experiences first
         dispatch(updateProfileData({ experiences: [] }));
         
         // Add each experience to the Redux store
-        response.data.forEach(experience => {
+        response.data.data.forEach(experience => {
           dispatch(addExperience(experience));
         });
         
         toast.success("Experiences loaded successfully");
+      } else {
+        toast.error(response.data?.message || "Failed to load experiences");
       }
     } catch (error) {
       console.error("Error fetching experiences:", error);
@@ -139,18 +141,23 @@ const ExperienceStep = () => {
                   )}
                 </div>
                 <div className="flex space-x-2">
-                  <button
+                  <div
                     onClick={() => handleEditClick(exp, index)}
                     className="p-2 text-blue-600 hover:text-blue-800 transition-colors"
+                    disabled={deleteLoading}
                   >
                     <FaEdit size={16} />
-                  </button>
-                  <button
-                    onClick={() => handleRemoveClick(index)}
+                  </div>
+                  <div
+                    onClick={() => handleRemoveClick(exp, index)}
                     className="p-2 text-red-600 hover:text-red-800 transition-colors"
+                    disabled={deleteLoading}
                   >
                     <FaTrash size={16} />
-                  </button>
+                    {deleteLoading && index === editIndex && (
+                      <span className="ml-2 animate-spin">...</span>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
