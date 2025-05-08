@@ -74,7 +74,6 @@ const ExperienceStep = () => {
           dispatch(addExperience(experience));
         });
         
-        toast.success("Experiences loaded successfully");
       } else {
         toast.error(response.data?.message || "Failed to load experiences");
       }

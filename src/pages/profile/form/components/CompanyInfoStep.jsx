@@ -9,6 +9,7 @@ import { FaChevronDown } from "react-icons/fa";
 import { useDispatch } from "react-redux";
 import { updateProfileData } from "../../../../Redux/user-slice";
 import { useSelector } from "react-redux";
+import { FaUserCircle } from "react-icons/fa";
 
 // Initialize PDF.js worker for Vite
 pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
@@ -220,17 +221,21 @@ const CompanyInfoStep = ({ formData, onInputChange }) => {
     <div className="md:px-8 px-4 py-6">
       <div className="flex justify-center mb-8">
         <div className="relative">
-          <img
-            src={avatar}
-            alt="Avatar"
-            className="w-24 h-24 rounded-full object-cover"
-          />
-          <label className="absolute bottom-0 right-0 bg-white rounded-full p-1.5 shadow-sm cursor-pointer">
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleImageUpload}
-              className="hidden"
+          {formData?.artifactUrl ? (
+            <img
+              src={formData?.artifactUrl}
+              alt="Avatar"
+              className="w-24 h-24 rounded-full object-cover"
+            />
+          ) : ( 
+            <FaUserCircle className="w-24 h-24 rounded-full object-cover text-gray-600" />
+          )}
+            <label className="absolute bottom-0 right-0 bg-white rounded-full p-1.5 shadow-sm cursor-pointer">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                className="hidden"
             />
             <FaRegEdit className="w-5 h-5 text-gray-600" />
           </label>

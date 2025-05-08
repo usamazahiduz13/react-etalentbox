@@ -81,7 +81,7 @@ export const updateProfile = async (profileId, payload) => {
 // Add education
 export const addEducation = async (educationData) => {
   try {
-    const response = await fetchApi.post(`${API_BASE_URL}/Education`, [educationData]);
+    const response = await fetchApi.post(`/Education`, [educationData]);
     toast.success('Education added successfully');
     return response.data;
   } catch (error) {
@@ -93,7 +93,7 @@ export const addEducation = async (educationData) => {
 // Update education
 export const updateEducation = async (educationId, educationData) => {
   try {
-    const response = await fetchApi.put(`${API_BASE_URL}/Education/${educationId}`, educationData, {
+    const response = await fetchApi.put(`/Education`, educationData, {
       headers: {
         'Content-Type': 'application/json'
       }
@@ -109,7 +109,7 @@ export const updateEducation = async (educationId, educationData) => {
 // Delete education
 export const deleteEducation = async (education) => {
   try {
-    const response = await fetchApi.delete(`${API_BASE_URL}/Education`, {
+    const response = await fetchApi.delete(`/Education`, {
       headers: {
         'Content-Type': 'application/json-patch+json'
       },
@@ -128,7 +128,7 @@ export const deleteEducation = async (education) => {
 // Add experience
 export const addExperience = async (experienceData) => {
   try {
-    const response = await fetchApi.post(`${API_BASE_URL}/Experience`, experienceData);
+    const response = await fetchApi.post(`/Experience`, [experienceData]);
    
     return response.data;
   } catch (error) {
@@ -140,7 +140,7 @@ export const addExperience = async (experienceData) => {
 // Update experience
 export const updateExperience = async (experienceId, experienceData) => {
   try {
-    const response = await axios.put(`${API_BASE_URL}/Experience/${experienceId}`, experienceData, {
+    const response = await axios.put(`/Experience`, experienceData, {
       headers: {
         ...getAuthHeader(),
         'Content-Type': 'application/json-patch+json'
@@ -157,7 +157,7 @@ export const updateExperience = async (experienceId, experienceData) => {
 // Delete experience
 export const deleteExperience = async (experience) => {
   try {
-    const response = await fetchApi.delete(`${API_BASE_URL}/Experience`, {
+    const response = await fetchApi.delete(`/Experience`, {
       headers: {
         'Content-Type': 'application/json-patch+json'
       },

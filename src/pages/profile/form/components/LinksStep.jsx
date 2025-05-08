@@ -28,7 +28,8 @@ const LinksStep = ({ formData, onInputChange, errors = {} }) => {
         try {
             const res = await fetchApi.get(`/SocialLink/${userInfo.userId}`)
             if (res.data.success) {
-                const linkData = res.data.data
+                const linkData = res.data.data[0]
+                console.log(linkData)
                 // Update local state
                 setLinks({
                     id: linkData.id || 0,
@@ -98,10 +99,10 @@ const LinksStep = ({ formData, onInputChange, errors = {} }) => {
             let response
             if (linkId === 0) {
                 // Create new links
-                response = await fetchApi.post('/SocialLinks', payload)
+                response = await fetchApi.post('/SocialLink', payload)
             } else {
                 // Update existing links
-                response = await fetchApi.put('/SocialLinks', payload)
+                response = await fetchApi.put('/SocialLink', payload)
             }
             
             if (response.data.success) {

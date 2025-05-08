@@ -256,7 +256,7 @@ const ExperienceModal = ({ isOpen, onClose, initialData = null, editIndex = -1 }
               <button
                 type="button"
                 onClick={handleSubmit}
-                className="px-4 py-2 primary-button flex items-center gap-2"
+                className="px-4 py-2 rounded-md primary-button flex items-center gap-2"
                 disabled={isLoading}
               >
                 {isLoading ? (

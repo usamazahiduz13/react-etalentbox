@@ -4,7 +4,7 @@ import { addEducation, updateEducation } from '../../../../Redux/user-slice';
 import { addEducation as addEducationAPI, updateEducation as updateEducationAPI } from '../../../../services/profile';
 import { toast } from 'sonner';
 
-const EducationModal = ({ isOpen, onClose, initialData = null, editIndex = -1 }) => {
+const EducationModal = ({ isOpen, onClose, initialData = null, editIndex = -1 , updateEducationData}) => {
   const dispatch = useDispatch();
   const { isLogin, userInfo } = useSelector(state => state.auth);
   const [formData, setFormData] = useState(
@@ -89,13 +89,27 @@ const EducationModal = ({ isOpen, onClose, initialData = null, editIndex = -1 })
       if (editIndex >= 0) {
         // Update existing education
         const response = await updateEducationAPI(educationData.id, educationData);
-        dispatch(updateEducation({ index: editIndex, data: response.data || response }));
+        updateEducationData()
         toast.success('Education updated successfully');
       } else {
         // Add new education
         const response = await addEducationAPI(educationData);
         dispatch(addEducation(response.data || response));
         toast.success('Education added successfully');
+        setFormData({
+          school: '',
+          schoolUrl: '',
+          degree: '',
+          fieldOfStudy: '',
+          startDate: '',
+          endDate: '',
+          currentlyEnrolled: false,
+          country: '',
+          city: '',
+          state: '',
+          grade: '',
+          userId: userInfo?.userId
+        })
       }
       onClose();
     } catch (error) {
@@ -291,7 +305,7 @@ const EducationModal = ({ isOpen, onClose, initialData = null, editIndex = -1 })
               <button
                 type="button"
                 onClick={handleSubmit}
-                className="px-4 py-2 primary-button flex items-center gap-2"
+                className="px-4 py-2 rounded-md primary-button flex items-center gap-2"
                 disabled={isLoading}
               >
                 {isLoading ? (

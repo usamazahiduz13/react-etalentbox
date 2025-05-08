@@ -76,6 +76,8 @@ const EducationStep = () => {
     getEducation();
   }, []);
 
+ 
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -141,6 +143,7 @@ const EducationStep = () => {
         onClose={() => setIsModalOpen(false)}
         initialData={currentEducation}
         editIndex={editIndex}
+        updateEducationData={getEducation}
       />
     </div>
   );

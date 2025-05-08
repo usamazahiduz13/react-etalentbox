@@ -44,7 +44,15 @@ const SkillModal = ({ isOpen, onClose, skillType, userId, onSuccess }) => {
       const endpoint = skillType === 'soft' ? 'SoftSkill' : 'TechnicalSkill';
       
       // Create skill payload
-      const payload = [{
+      const payload = skillType === 'soft' ? [{
+        id: 0,
+        name: skill.trim(),
+        experience: getExperienceValue(experience),
+        userId: userInfo?.userId,
+        likeCount: 0,
+        rating: 0,
+        softSkillLike: []
+      }] : [{
         id: 0,
         name: skill.trim(),
         experience: getExperienceValue(experience),
@@ -79,15 +87,11 @@ const SkillModal = ({ isOpen, onClose, skillType, userId, onSuccess }) => {
           setExperience('beginner');
           onClose();
           
-          // Refresh skills list
-          if (onSuccess) onSuccess();
-        } else {
-          toast.warning('Skill was created but no data was returned');
-        }
+      
       } else {
         toast.error('Failed to add skill: ' + (response.data?.message || 'Unknown error'));
       }
-    } catch (error) {
+    }} catch (error) {
       console.error('Skill add error:', error);
       toast.error(error.response?.data?.message || 'Failed to add skill');
     } finally {

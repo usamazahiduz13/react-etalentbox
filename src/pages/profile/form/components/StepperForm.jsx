@@ -121,10 +121,10 @@ const StepperForm = () => {
               isPortfolioPrivate: false,
               status: profile.status || "",
               specialities: [],
-              experiences: [],
               availabilities: [],
+              // No need to specify experiences as empty array as we get them from Redux state
             })
-          ).unwrap();
+          );
 
           toast.success("Profile created successfully");
           // Navigate to profile view or dashboard after successful creation

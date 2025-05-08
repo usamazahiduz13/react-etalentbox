@@ -29,16 +29,30 @@ export const fetchUserProfile = createAsyncThunk(
 
 export const createUserProfile = createAsyncThunk(
   'user/createProfile',
-  async (profileData, { rejectWithValue }) => {
+  async (profileData, { rejectWithValue, getState }) => {
     try {
-      console.log('Sending profile data to API:', JSON.stringify(profileData));
+      // Get the experiences from the current Redux state
+      const { experiences } = getState().user;
       
+      console.log('Sending profile data to API:', JSON.stringify({
+        ...profileData,
+        experiences
+      }));
       
+      // Send profile with experiences array
+      const response = await fetchApi.post(`/Profile`, {
+        ...profileData,
+        experiences
+      });
       
-      const response = await fetchApi.post(`/Profile`, profileData);
-      console.log('API response:', response.data);
+      // Only show a success message, don't return data to prevent Redux state update
       toast.success('Profile created successfully');
-      return response.data;
+      
+      // Return a minimal response that won't affect state
+      return {
+        id: response.data?.id || null,
+        userId: profileData.userId
+      };
     } catch (error) {
       console.error('API error details:', error.response?.data);
       toast.error(error.response?.data?.message || 'Failed to create profile');
@@ -241,8 +255,10 @@ const userSlice = createSlice({
       })
       .addCase(createUserProfile.fulfilled, (state, action) => {
         state.loading = false;
-        state.profile = action.payload;
+        // Only update minimal profile information, keeping other state the same
+        state.profile.id = action.payload.id;
         state.success = true;
+        // Don't update experiences from response to maintain local state
       })
       .addCase(createUserProfile.rejected, (state, action) => {
         state.loading = false;
