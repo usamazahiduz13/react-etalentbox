@@ -9,7 +9,8 @@ const initialState = {
   isNewUser: false,
   userInfo: token ? { userId, token } : null,
   loading: false,
-  error: null
+  error: null,
+  userData: null
 };
 
 const authSlice = createSlice({
@@ -24,10 +25,27 @@ const authSlice = createSlice({
       state.isLogin = isLogin;
       state.isAuthenticated = isLogin;
       state.userInfo = userInfo;
+    },
+    updateUserData : (state, action) => {
+      if (!state.userData) {
+        state.userData = {}; // Initialize userData if it doesn't exist
+      }
+      
+      // Update specific properties in userData
+      state.userData = {
+        ...state.userData,
+        info: action.payload.info || state.userData?.info,
+        experience: action.payload.experience || state.userData?.experience,
+        education: action.payload.education || state.userData?.education,
+        technicalSkill: action.payload.technicalSkill || state.userData?.technicalSkill,
+        softSkill: action.payload.softSkill || state.userData?.softSkill,
+        portfolio: action.payload.portfolio || state.userData?.portfolio,
+        overview: action.payload.overview || state.userData?.overview
+      };
     }
   }
 });
 
-export const { clearError, toggleAuth } = authSlice.actions;
+export const { clearError, toggleAuth, updateUserData } = authSlice.actions;
 
 export default authSlice.reducer; 

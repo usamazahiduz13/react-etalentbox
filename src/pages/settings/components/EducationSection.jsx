@@ -5,6 +5,8 @@ import { toast } from 'sonner';
 const EducationSection = ({  onEdit, onAdd }) => {
   const { userInfo } = useSelector((state) => state.auth);
   const [education, setEducation] = useState([]);
+
+  // Get education
   const getEducation = async () => {
     try {
       if (!userInfo?.userId) {

@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import fetchApi from "../../utils/axios";
 import Header from "../../layout/DashBoardNavbar";
+import { updateUserData } from "../../Redux/auth-slice";
 
 // Component imports
 import ProfileHeader from "./components/ProfileHeader";
@@ -32,7 +33,7 @@ const SettingsPage = () => {
   const [technicalSkills, setTechnicalSkills] = useState([])
   const [overview, setOverview] = useState([])
   const navigate = useNavigate();
-
+  const dispatch=useDispatch()
   // Modal states
   const [experienceModal, setExperienceModal] = useState({ isOpen: false, data: null, index: -1 });
   const [educationModal, setEducationModal] = useState({ isOpen: false, data: null, index: -1 });
@@ -54,6 +55,7 @@ const SettingsPage = () => {
         const res = await fetchApi.get(`/Profile?userId=${userInfo.userId}`);
         if (res.data && res.data.success) {
           setUserData(res.data.data);
+          dispatch(updateUserData({info:res.data.data}))
         } else {
           toast.error("Failed to load profile data");
         }

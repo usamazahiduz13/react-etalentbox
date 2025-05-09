@@ -1,17 +1,6 @@
 import React from 'react';
 import { steps } from '../../utilis/formUtilis.jsx';
 
-const StepIcon = ({ icon, active }) => {
-    return (
-        <div
-            className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                active ? 'bg-primary' : 'bg-gray-300'
-            } text-white text-lg`}
-        >
-            {icon}
-        </div>
-    );
-};
 
 const StepperFormSteps = ({ step, setStep }) => {
     const activeStep = step;
