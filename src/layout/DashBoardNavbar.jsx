@@ -43,6 +43,7 @@ const Header = () => {
       console.error('Logout failed:', error);
     }
   };
+  //code update
 
   return (
     <header className="bg-[#14589C] text-white">
